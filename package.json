@@ -1,0 +1,17 @@
+{
+  "name": "@xeplr/ui-account",
+  "version": "1.0.0",
+  "description": "Account UI: auth, profile, RBAC admin, tenant management — React controller hooks and designs",
+  "type": "module",
+  "main": "src/index.js",
+  "files": ["src/"],
+  "keywords": ["auth", "account", "profile", "react", "hooks", "login", "register", "rbac", "multi-tenancy"],
+  "author": "xeplr",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/xeplr/xeplr" },
+  "publishConfig": { "access": "public" },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-router-dom": "^6.0.0 || ^7.0.0"
+  }
+}

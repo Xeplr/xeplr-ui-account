@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>XEPLR Admin - RBAC Matrix Demo</title>
+<style>
+  /* ─── Theme Definitions ─── */
+  .xeplr-theme-dark {
+    --xeplr-bg-primary: #1a1a1a; --xeplr-bg-secondary: #222222; --xeplr-bg-tertiary: #2a2a2a; --xeplr-bg-hover: #2a2a2a; --xeplr-bg-active: #1a1a2a; --xeplr-bg-body: #111111;
+    --xeplr-text-primary: #e0e0e0; --xeplr-text-secondary: #aaaaaa; --xeplr-text-muted: #777777; --xeplr-text-disabled: #555555;
+    --xeplr-border-primary: #333333; --xeplr-border-secondary: #2a2a2a; --xeplr-border-focus: #646cff;
+    --xeplr-accent: #646cff; --xeplr-accent-hover: #535bf2; --xeplr-accent-text: #ffffff; --xeplr-accent-muted: #4a4a8a;
+    --xeplr-success: #6bcc6b; --xeplr-success-bg: #1a2a1a; --xeplr-success-border: #4aaf4a;
+    --xeplr-danger: #ff6b6b; --xeplr-danger-bg: #3d1111; --xeplr-danger-border: #5a1a1a;
+    --xeplr-info: #6db3ff; --xeplr-info-bg: #1a2233;
+    --xeplr-input-bg: #2a2a2a; --xeplr-input-border: #444444; --xeplr-input-text: #e0e0e0; --xeplr-input-placeholder: #666666;
+    --xeplr-tag-bg: #2a2a3a; --xeplr-tag-border: #3a3a5a; --xeplr-tag-text: #9999cc;
+    --xeplr-badge-bg: #2a2a2a; --xeplr-badge-text: #666666;
+  }
+  .xeplr-theme-light {
+    --xeplr-bg-primary: #fafafa; --xeplr-bg-secondary: #f5f5f5; --xeplr-bg-tertiary: #ffffff; --xeplr-bg-hover: #f0f0f0; --xeplr-bg-active: #f0f0ff; --xeplr-bg-body: #f0f0f0;
+    --xeplr-text-primary: #333333; --xeplr-text-secondary: #666666; --xeplr-text-muted: #999999; --xeplr-text-disabled: #cccccc;
+    --xeplr-border-primary: #dddddd; --xeplr-border-secondary: #eeeeee; --xeplr-border-focus: #646cff;
+    --xeplr-accent: #646cff; --xeplr-accent-hover: #535bf2; --xeplr-accent-text: #ffffff; --xeplr-accent-muted: #b0b0e0;
+    --xeplr-success: #2d7d2d; --xeplr-success-bg: #e8f5e8; --xeplr-success-border: #3d9e3d;
+    --xeplr-danger: #cc0000; --xeplr-danger-bg: #ffe0e0; --xeplr-danger-border: #f5c6c6;
+    --xeplr-info: #2a6cb5; --xeplr-info-bg: #e8f0ff;
+    --xeplr-input-bg: #ffffff; --xeplr-input-border: #cccccc; --xeplr-input-text: #333333; --xeplr-input-placeholder: #aaaaaa;
+    --xeplr-tag-bg: #eeeeff; --xeplr-tag-border: #ddddee; --xeplr-tag-text: #5555cc;
+    --xeplr-badge-bg: #eeeeee; --xeplr-badge-text: #888888;
+  }
+  .xeplr-theme-medium {
+    --xeplr-bg-primary: #2c2c2e; --xeplr-bg-secondary: #3a3a3c; --xeplr-bg-tertiary: #48484a; --xeplr-bg-hover: #3a3a3c; --xeplr-bg-active: #2c2c3e; --xeplr-bg-body: #232325;
+    --xeplr-text-primary: #e5e5e7; --xeplr-text-secondary: #b0b0b2; --xeplr-text-muted: #8e8e93; --xeplr-text-disabled: #636366;
+    --xeplr-border-primary: #48484a; --xeplr-border-secondary: #3a3a3c; --xeplr-border-focus: #7b7fff;
+    --xeplr-accent: #7b7fff; --xeplr-accent-hover: #6a6ef0; --xeplr-accent-text: #ffffff; --xeplr-accent-muted: #5a5a9a;
+    --xeplr-success: #7cd87c; --xeplr-success-bg: #253025; --xeplr-success-border: #5aaa5a;
+    --xeplr-danger: #ff7070; --xeplr-danger-bg: #402020; --xeplr-danger-border: #6a2a2a;
+    --xeplr-info: #7abcff; --xeplr-info-bg: #202a3a;
+    --xeplr-input-bg: #3a3a3c; --xeplr-input-border: #555558; --xeplr-input-text: #e5e5e7; --xeplr-input-placeholder: #777777;
+    --xeplr-tag-bg: #3a3a4a; --xeplr-tag-border: #4a4a5a; --xeplr-tag-text: #aaaadd;
+    --xeplr-badge-bg: #3a3a3c; --xeplr-badge-text: #8e8e93;
+  }
+  .xeplr-theme-bright {
+    --xeplr-bg-primary: #ffffff; --xeplr-bg-secondary: #f0f2ff; --xeplr-bg-tertiary: #ffffff; --xeplr-bg-hover: #e8ebff; --xeplr-bg-active: #e0e4ff; --xeplr-bg-body: #eaecff;
+    --xeplr-text-primary: #1a1a2e; --xeplr-text-secondary: #444466; --xeplr-text-muted: #888899; --xeplr-text-disabled: #bbbbcc;
+    --xeplr-border-primary: #d0d4ee; --xeplr-border-secondary: #e0e4f4; --xeplr-border-focus: #5b5fff;
+    --xeplr-accent: #5b5fff; --xeplr-accent-hover: #4a4ef0; --xeplr-accent-text: #ffffff; --xeplr-accent-muted: #c0c2f0;
+    --xeplr-success: #1aaa55; --xeplr-success-bg: #e0fae8; --xeplr-success-border: #2ecc71;
+    --xeplr-danger: #e53e3e; --xeplr-danger-bg: #ffe8e8; --xeplr-danger-border: #fc8181;
+    --xeplr-info: #3182ce; --xeplr-info-bg: #e0efff;
+    --xeplr-input-bg: #ffffff; --xeplr-input-border: #c0c4dd; --xeplr-input-text: #1a1a2e; --xeplr-input-placeholder: #999aab;
+    --xeplr-tag-bg: #ebebff; --xeplr-tag-border: #d0d0ee; --xeplr-tag-text: #5555aa;
+    --xeplr-badge-bg: #e8eaff; --xeplr-badge-text: #6666aa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--xeplr-bg-body, #111); color: var(--xeplr-text-primary, #e0e0e0); font-family: system-ui, -apple-system, sans-serif; font-size: 14px; padding: 20px; transition: background 0.2s, color 0.2s; }
+
+  /* Nav */
+  .demo-nav { display: flex; gap: 12px; margin-bottom: 24px; max-width: 1200px; margin-left: auto; margin-right: auto; align-items: center; flex-wrap: wrap; }
+  .demo-nav button { padding: 10px 24px; border: 1px solid var(--xeplr-input-border); border-radius: 6px; background: var(--xeplr-bg-primary); color: var(--xeplr-text-primary); cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.15s; }
+  .demo-nav button.active { background: var(--xeplr-accent); border-color: var(--xeplr-accent); color: var(--xeplr-accent-text); }
+  .demo-theme-picker { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+  .demo-theme-picker label { font-size: 12px; color: var(--xeplr-text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .demo-theme-picker select { padding: 6px 12px; border: 1px solid var(--xeplr-input-border); border-radius: 4px; background: var(--xeplr-input-bg); color: var(--xeplr-input-text); font-size: 13px; cursor: pointer; }
+
+  /* Container */
+  .xeplr-admin-container { max-width: 1200px; margin: 0 auto; padding: 20px; border: 1px solid var(--xeplr-border-primary); border-radius: 8px; background: var(--xeplr-bg-primary); color: var(--xeplr-text-primary); transition: all 0.2s; }
+  .xeplr-admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .xeplr-admin-header h2 { font-size: 20px; }
+
+  /* Toolbar */
+  .xeplr-admin-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .xeplr-admin-search { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--xeplr-input-border); border-radius: 4px; background: var(--xeplr-input-bg); color: var(--xeplr-input-text); font-size: 14px; }
+  .xeplr-admin-search:focus { outline: none; border-color: var(--xeplr-border-focus); }
+
+  /* Tabs */
+  .xeplr-admin-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid var(--xeplr-border-primary); }
+  .xeplr-admin-tab { padding: 10px 20px; border: none; background: none; color: var(--xeplr-text-muted); cursor: pointer; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.15s, border-color 0.15s; }
+  .xeplr-admin-tab:hover { color: var(--xeplr-text-secondary); }
+  .xeplr-admin-tab-active { color: var(--xeplr-accent); border-bottom-color: var(--xeplr-accent); }
+  .xeplr-admin-tab-badge { margin-left: 6px; font-size: 11px; background: var(--xeplr-badge-bg); color: var(--xeplr-badge-text); padding: 1px 7px; border-radius: 10px; }
+
+  /* Sub-tabs */
+  .xeplr-admin-subtabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .xeplr-admin-subtab { padding: 6px 14px; border: 1px solid var(--xeplr-border-primary); border-radius: 4px; background: var(--xeplr-bg-secondary); color: var(--xeplr-text-muted); cursor: pointer; font-size: 13px; transition: all 0.15s; }
+  .xeplr-admin-subtab:hover { color: var(--xeplr-text-secondary); border-color: var(--xeplr-input-border); }
+  .xeplr-admin-subtab-active { background: var(--xeplr-bg-active); color: var(--xeplr-accent); border-color: var(--xeplr-accent); }
+  .xeplr-admin-subtab-count { margin-left: 5px; font-size: 11px; color: var(--xeplr-text-disabled); }
+
+  /* Matrix */
+  .xeplr-admin-matrix-wrapper { overflow-x: auto; border: 1px solid var(--xeplr-border-primary); border-radius: 6px; }
+  .xeplr-admin-matrix { width: 100%; border-collapse: collapse; white-space: nowrap; }
+  .xeplr-admin-matrix th { padding: 10px 14px; background: var(--xeplr-bg-secondary); border-bottom: 2px solid var(--xeplr-border-primary); text-align: center; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--xeplr-text-secondary); }
+  .xeplr-admin-matrix td { padding: 8px 14px; border-bottom: 1px solid var(--xeplr-border-secondary); }
+  .xeplr-admin-matrix tbody tr:hover { background: var(--xeplr-bg-hover); }
+  .xeplr-admin-matrix tbody tr:last-child td { border-bottom: none; }
+
+  .xeplr-admin-sticky-col { position: sticky; left: 0; z-index: 1; background: var(--xeplr-bg-primary); text-align: left !important; min-width: 200px; }
+  .xeplr-admin-matrix thead .xeplr-admin-sticky-col { background: var(--xeplr-bg-secondary); z-index: 3; }
+  .xeplr-admin-matrix tbody tr:hover .xeplr-admin-sticky-col { background: var(--xeplr-bg-hover); }
+  .xeplr-admin-role-header { min-width: 100px; }
+
+  /* Module view */
+  .xeplr-admin-module-name { font-weight: 600; font-size: 15px; text-transform: capitalize; vertical-align: top; padding-top: 12px !important; border-right: 1px solid var(--xeplr-border-secondary); }
+  .xeplr-admin-module-first-row td { border-top: 2px solid var(--xeplr-border-primary); }
+  .xeplr-admin-action-cell { font-size: 13px; font-weight: 500; padding-left: 16px !important; }
+  .xeplr-admin-action-view { color: var(--xeplr-info); }
+  .xeplr-admin-action-edit { color: var(--xeplr-success); }
+  .xeplr-admin-action-delete { color: var(--xeplr-danger); }
+
+  /* User cell */
+  .xeplr-admin-user-name { font-weight: 500; }
+  .xeplr-admin-user-email { font-size: 12px; color: var(--xeplr-text-muted); }
+  .xeplr-admin-item-name { font-weight: 500; }
+
+  /* Checkbox */
+  .xeplr-admin-cell { text-align: center; }
+  .xeplr-admin-toggle { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  .xeplr-admin-toggle input[type="checkbox"] { display: none; }
+  .xeplr-admin-checkmark { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--xeplr-input-border); border-radius: 4px; background: var(--xeplr-input-bg); position: relative; transition: all 0.15s; }
+  .xeplr-admin-toggle input:checked + .xeplr-admin-checkmark { background: var(--xeplr-accent); border-color: var(--xeplr-accent); }
+  .xeplr-admin-toggle input:checked + .xeplr-admin-checkmark::after { content: ''; position: absolute; left: 5px; top: 1px; width: 6px; height: 11px; border: solid var(--xeplr-accent-text); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .xeplr-admin-checkmark:hover { border-color: var(--xeplr-accent); }
+
+  /* Partial / indeterminate */
+  .xeplr-admin-partial { background: var(--xeplr-accent-muted); border-color: var(--xeplr-accent); }
+  .xeplr-admin-partial::after { content: ''; position: absolute; left: 3px; top: 7px; width: 10px; height: 2px; background: var(--xeplr-accent-text); }
+
+  .xeplr-admin-empty { text-align: center; padding: 30px; color: var(--xeplr-text-disabled); font-style: italic; }
+  .xeplr-admin-empty-box { text-align: center; padding: 40px 20px; color: var(--xeplr-text-disabled); border: 1px dashed var(--xeplr-border-primary); border-radius: 6px; }
+
+  /* Master Settings */
+  .xeplr-admin-btn-primary { padding: 8px 16px; border: none; border-radius: 4px; background: var(--xeplr-accent); color: var(--xeplr-accent-text); cursor: pointer; font-size: 13px; font-weight: 500; }
+  .xeplr-admin-btn-primary:hover { background: var(--xeplr-accent-hover); }
+  .xeplr-admin-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .xeplr-admin-master-table th { text-align: left !important; }
+  .xeplr-admin-actions-col { width: 90px; text-align: center !important; }
+  .xeplr-admin-action-btns { display: flex; gap: 6px; justify-content: center; }
+  .xeplr-admin-btn-edit, .xeplr-admin-btn-delete, .xeplr-admin-btn-save, .xeplr-admin-btn-cancel { width: 30px; height: 30px; border: 1px solid var(--xeplr-input-border); border-radius: 4px; background: var(--xeplr-bg-tertiary); color: var(--xeplr-text-secondary); cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .xeplr-admin-btn-edit:hover { background: var(--xeplr-bg-active); color: var(--xeplr-accent); border-color: var(--xeplr-accent); }
+  .xeplr-admin-btn-delete:hover { background: var(--xeplr-danger-bg); color: var(--xeplr-danger); border-color: var(--xeplr-danger); }
+  .xeplr-admin-btn-save { background: var(--xeplr-success-bg); color: var(--xeplr-success); border-color: var(--xeplr-success-border); }
+  .xeplr-admin-btn-save:hover { opacity: 0.9; }
+  .xeplr-admin-btn-cancel:hover { background: var(--xeplr-bg-hover); }
+  .xeplr-admin-btn-edit:disabled, .xeplr-admin-btn-delete:disabled { opacity: 0.3; cursor: not-allowed; }
+  .xeplr-admin-editing-row { background: var(--xeplr-bg-active) !important; }
+  .xeplr-admin-editing-row .xeplr-admin-sticky-col { background: var(--xeplr-bg-active) !important; }
+  .xeplr-admin-inline-input { width: 100%; padding: 6px 8px; border: 1px solid var(--xeplr-input-border); border-radius: 4px; background: var(--xeplr-input-bg); color: var(--xeplr-input-text); font-size: 13px; }
+  .xeplr-admin-inline-input:focus { outline: none; border-color: var(--xeplr-border-focus); }
+  .xeplr-admin-group-input { font-family: monospace; font-size: 12px; }
+  .xeplr-admin-group-tag { display: inline-block; padding: 2px 8px; background: var(--xeplr-tag-bg); border: 1px solid var(--xeplr-tag-border); border-radius: 3px; font-family: monospace; font-size: 12px; color: var(--xeplr-tag-text); }
+  .xeplr-admin-badge-yes { display: inline-block; padding: 2px 8px; background: var(--xeplr-success-bg); border-radius: 3px; font-size: 12px; color: var(--xeplr-success); }
+  .xeplr-admin-badge-no { display: inline-block; padding: 2px 8px; background: var(--xeplr-badge-bg); border-radius: 3px; font-size: 12px; color: var(--xeplr-badge-text); }
+</style>
+</head>
+<body class="xeplr-theme-dark">
+
+<div class="demo-nav">
+  <button id="nav-master" class="active" onclick="showPage('master')">Master Settings</button>
+  <button id="nav-users" onclick="showPage('users')">User Roles</button>
+  <button id="nav-access" onclick="showPage('access')">Access Matrix</button>
+  <div class="demo-theme-picker">
+    <label>Theme</label>
+    <select id="theme-select" onchange="switchTheme(this.value)">
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+      <option value="medium">Medium</option>
+      <option value="bright">Bright</option>
+    </select>
+  </div>
+</div>
+
+<div id="view-master"></div>
+<div id="view-users" style="display:none"></div>
+<div id="view-access" style="display:none"></div>
+
+<script>
+// ─── Mock Data ───
+
+var roles = [
+  { id: 'r1', name: 'Admin' },
+  { id: 'r2', name: 'Editor' },
+  { id: 'r3', name: 'Viewer' },
+  { id: 'r4', name: 'Manager' },
+  { id: 'r5', name: 'Support' },
+];
+
+var users = [
+  { id: 'u1', name: 'Alice Johnson', email: 'alice@example.com', roles: ['r1', 'r2'] },
+  { id: 'u2', name: 'Bob Smith', email: 'bob@example.com', roles: ['r3'] },
+  { id: 'u3', name: 'Carol Davis', email: 'carol@example.com', roles: ['r2', 'r4'] },
+  { id: 'u4', name: 'Dan Wilson', email: 'dan@example.com', roles: ['r3', 'r5'] },
+  { id: 'u5', name: 'Eve Brown', email: 'eve@example.com', roles: ['r1'] },
+  { id: 'u6', name: 'Frank Lee', email: 'frank@example.com', roles: [] },
+  { id: 'u7', name: 'Grace Kim', email: 'grace@example.com', roles: ['r2', 'r3', 'r5'] },
+  { id: 'u8', name: 'Henry Chen', email: 'henry@example.com', roles: ['r4'] },
+];
+
+// Items with module:action groups (categorized) and some without (uncategorized)
+var allItems = {
+  apis: [
+    // account module
+    { id: 'a1', name: 'Login', group: 'account:view', roles: ['r1','r2','r3','r4','r5'] },
+    { id: 'a2', name: 'View Profile', group: 'account:view', roles: ['r1','r2','r3','r4','r5'] },
+    { id: 'a3', name: 'Update Profile', group: 'account:edit', roles: ['r1','r2','r3','r4','r5'] },
+    { id: 'a14', name: 'Delete Account', group: 'account:delete', roles: ['r1'] },
+    // users module
+    { id: 'a4', name: 'List Users', group: 'users:view', roles: ['r1','r4'] },
+    { id: 'a5', name: 'Create User', group: 'users:edit', roles: ['r1'] },
+    { id: 'a6', name: 'Delete User', group: 'users:delete', roles: ['r1'] },
+    // content module
+    { id: 'a7', name: 'List Posts', group: 'content:view', roles: ['r1','r2','r3'] },
+    { id: 'a8', name: 'Create/Edit Post', group: 'content:edit', roles: ['r1','r2'] },
+    { id: 'a9', name: 'Delete Post', group: 'content:delete', roles: ['r1'] },
+    // reports module
+    { id: 'a10', name: 'View Reports', group: 'reports:view', roles: ['r1','r4'] },
+    { id: 'a11', name: 'Export Reports', group: 'reports:edit', roles: ['r1'] },
+    // support module
+    { id: 'a12', name: 'List Tickets', group: 'support:view', roles: ['r1','r5'] },
+    { id: 'a13', name: 'Respond to Ticket', group: 'support:edit', roles: ['r1','r5'] },
+    // uncategorized
+    { id: 'a20', name: '/internal/health-check', group: '', roles: ['r1'] },
+    { id: 'a21', name: '/internal/cache-clear', group: '', roles: ['r1'] },
+  ],
+  pages: [
+    { id: 'p1', name: 'Dashboard', group: 'account:view', roles: ['r1','r2','r3','r4','r5'] },
+    { id: 'p2', name: 'Profile', group: 'account:view', roles: ['r1','r2','r3','r4','r5'] },
+    { id: 'p3', name: 'User Management', group: 'users:view', roles: ['r1','r4'] },
+    { id: 'p4', name: 'Content Viewer', group: 'content:view', roles: ['r1','r2','r3'] },
+    { id: 'p5', name: 'Content Editor', group: 'content:edit', roles: ['r1','r2'] },
+    { id: 'p6', name: 'Reports', group: 'reports:view', roles: ['r1','r4'] },
+    { id: 'p7', name: 'Support Tickets', group: 'support:view', roles: ['r1','r5'] },
+    { id: 'p8', name: 'Settings', group: 'settings:edit', roles: ['r1'] },
+    // uncategorized
+    { id: 'p20', name: 'Legacy Admin Panel', group: '', roles: ['r1'] },
+  ],
+  elements: [
+    { id: 'e1', name: 'Edit User Button', group: 'users:edit', roles: ['r1','r4'] },
+    { id: 'e2', name: 'Delete User Button', group: 'users:delete', roles: ['r1'] },
+    { id: 'e3', name: 'Publish Post Button', group: 'content:edit', roles: ['r1','r2'] },
+    { id: 'e4', name: 'Delete Post Button', group: 'content:delete', roles: ['r1'] },
+    { id: 'e5', name: 'Export Report Button', group: 'reports:edit', roles: ['r1','r4'] },
+    { id: 'e6', name: 'Close Ticket Button', group: 'support:edit', roles: ['r1','r5'] },
+  ],
+  menus: [
+    { id: 'm1', name: 'Dashboard', group: 'account:view', roles: ['r1','r2','r3','r4','r5'] },
+    { id: 'm2', name: 'Users', group: 'users:view', roles: ['r1','r4'] },
+    { id: 'm3', name: 'Content', group: 'content:view', roles: ['r1','r2','r3'] },
+    { id: 'm4', name: 'Reports', group: 'reports:view', roles: ['r1','r4'] },
+    { id: 'm5', name: 'Settings', group: 'settings:edit', roles: ['r1'] },
+    { id: 'm6', name: 'Support', group: 'support:view', roles: ['r1','r5'] },
+  ]
+};
+
+var ACTION_ORDER = { view: 0, edit: 1, delete: 2 };
+var ACTION_LABELS = { view: 'View Only', edit: 'Add / Edit', delete: 'Delete' };
+var ACTION_CLASSES = { view: 'xeplr-admin-action-view', edit: 'xeplr-admin-action-edit', delete: 'xeplr-admin-action-delete' };
+var TYPES = ['apis', 'pages', 'elements', 'menus'];
+var UNCAT_TABS = [
+  { key: 'apis', label: 'APIs' },
+  { key: 'pages', label: 'Pages' },
+  { key: 'elements', label: 'Elements' },
+  { key: 'menus', label: 'Menus' },
+];
+
+var userSearch = '';
+var accessSearch = '';
+var activeView = 'modules';
+var uncatSubTab = 'apis';
+
+// ─── Helpers ───
+
+function parseGroup(g) {
+  if (!g) return null;
+  var parts = g.split(':');
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+  return { module: parts[0], action: parts[1] };
+}
+
+function buildModules() {
+  var moduleMap = {};
+  var q = accessSearch.toLowerCase();
+
+  TYPES.forEach(function(type) {
+    (allItems[type] || []).forEach(function(item) {
+      var parsed = parseGroup(item.group);
+      if (!parsed) return;
+      var key = parsed.module;
+      if (!moduleMap[key]) moduleMap[key] = {};
+      if (!moduleMap[key][parsed.action]) moduleMap[key][parsed.action] = [];
+      moduleMap[key][parsed.action].push({ type: type, item: item });
+    });
+  });
+
+  var names = Object.keys(moduleMap).sort().filter(function(n) {
+    return !q || n.toLowerCase().includes(q);
+  });
+
+  return names.map(function(name) {
+    var actions = Object.keys(moduleMap[name]).sort(function(a, b) {
+      return (ACTION_ORDER[a] || 99) - (ACTION_ORDER[b] || 99);
+    }).map(function(action) {
+      var entries = moduleMap[name][action];
+      return { action: action, entries: entries };
+    });
+    return { name: name, actions: actions };
+  });
+}
+
+function getModuleRoleState(entries, roleId) {
+  var total = entries.length;
+  var assigned = 0;
+  entries.forEach(function(e) {
+    if (e.item.roles.indexOf(roleId) !== -1) assigned++;
+  });
+  if (assigned === total) return 'all';
+  if (assigned > 0) return 'partial';
+  return 'none';
+}
+
+function buildUncategorized() {
+  var result = {};
+  var q = accessSearch.toLowerCase();
+  TYPES.forEach(function(type) {
+    result[type] = (allItems[type] || []).filter(function(item) {
+      var parsed = parseGroup(item.group);
+      if (parsed) return false;
+      return !q || item.name.toLowerCase().includes(q);
+    });
+  });
+  return result;
+}
+
+function getUncatCount(uncat) {
+  var c = 0;
+  TYPES.forEach(function(t) { c += (uncat[t] || []).length; });
+  return c;
+}
+
+// ─── Rendering ───
+
+function showPage(page) {
+  document.getElementById('view-master').style.display = page === 'master' ? '' : 'none';
+  document.getElementById('view-users').style.display = page === 'users' ? '' : 'none';
+  document.getElementById('view-access').style.display = page === 'access' ? '' : 'none';
+  document.getElementById('nav-master').className = page === 'master' ? 'active' : '';
+  document.getElementById('nav-users').className = page === 'users' ? 'active' : '';
+  document.getElementById('nav-access').className = page === 'access' ? 'active' : '';
+}
+
+function renderUserRoles() {
+  var q = userSearch.toLowerCase();
+  var filtered = users.filter(function(u) {
+    return !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+  });
+
+  var html = '<div class="xeplr-admin-container">';
+  html += '<div class="xeplr-admin-header"><h2>User Roles</h2></div>';
+  html += '<div class="xeplr-admin-toolbar">';
+  html += '<input type="text" placeholder="Search users by name or email..." value="' + userSearch + '" oninput="userSearch=this.value;renderUserRoles()" class="xeplr-admin-search" />';
+  html += '</div>';
+  html += '<div class="xeplr-admin-matrix-wrapper"><table class="xeplr-admin-matrix" role="grid"><thead><tr>';
+  html += '<th class="xeplr-admin-sticky-col">User</th>';
+  roles.forEach(function(r) { html += '<th class="xeplr-admin-role-header">' + r.name + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  if (filtered.length === 0) {
+    html += '<tr><td colspan="' + (roles.length + 1) + '" class="xeplr-admin-empty">No users found</td></tr>';
+  } else {
+    filtered.forEach(function(user) {
+      html += '<tr>';
+      html += '<td class="xeplr-admin-sticky-col" style="line-height:1.3"><div class="xeplr-admin-user-name">' + user.name + '</div><div class="xeplr-admin-user-email">' + user.email + '</div></td>';
+      roles.forEach(function(role) {
+        var checked = user.roles.indexOf(role.id) !== -1;
+        html += '<td class="xeplr-admin-cell"><label class="xeplr-admin-toggle">';
+        html += '<input type="checkbox" ' + (checked ? 'checked' : '') + ' onchange="toggleUserRole(\'' + user.id + '\',\'' + role.id + '\')" />';
+        html += '<span class="xeplr-admin-checkmark"></span></label></td>';
+      });
+      html += '</tr>';
+    });
+  }
+  html += '</tbody></table></div></div>';
+  document.getElementById('view-users').innerHTML = html;
+}
+
+function renderAccessMatrix() {
+  var uncat = buildUncategorized();
+  var uncatCount = getUncatCount(uncat);
+
+  var html = '<div class="xeplr-admin-container">';
+  html += '<div class="xeplr-admin-header"><h2>Access Matrix</h2></div>';
+
+  // Top tabs
+  html += '<div class="xeplr-admin-tabs" role="tablist">';
+  html += '<button role="tab" class="xeplr-admin-tab' + (activeView === 'modules' ? ' xeplr-admin-tab-active' : '') + '" onclick="activeView=\'modules\';accessSearch=\'\';renderAccessMatrix()">Modules</button>';
+  html += '<button role="tab" class="xeplr-admin-tab' + (activeView === 'uncategorized' ? ' xeplr-admin-tab-active' : '') + '" onclick="activeView=\'uncategorized\';accessSearch=\'\';renderAccessMatrix()">Uncategorized';
+  if (uncatCount > 0) html += '<span class="xeplr-admin-tab-badge">' + uncatCount + '</span>';
+  html += '</button></div>';
+
+  // Search
+  html += '<div class="xeplr-admin-toolbar">';
+  html += '<input id="xeplr-admin-access-search" type="text" placeholder="' + (activeView === 'modules' ? 'Search modules...' : 'Search items...') + '" value="' + accessSearch + '" oninput="accessSearch=this.value;renderAccessMatrix()" class="xeplr-admin-search" />';
+  html += '</div>';
+
+  if (activeView === 'modules') {
+    html += renderModulesView();
+  } else {
+    html += renderUncategorizedView(uncat);
+  }
+
+  html += '</div>';
+  document.getElementById('view-access').innerHTML = html;
+}
+
+function renderModulesView() {
+  var modules = buildModules();
+  if (modules.length === 0) {
+    return '<div class="xeplr-admin-empty-box">No modules found.</div>';
+  }
+
+  var html = '<div class="xeplr-admin-matrix-wrapper"><table class="xeplr-admin-matrix" role="grid"><thead><tr>';
+  html += '<th class="xeplr-admin-sticky-col" style="min-width:180px">Module</th>';
+  html += '<th style="text-align:left;min-width:120px">Action</th>';
+  roles.forEach(function(r) { html += '<th class="xeplr-admin-role-header">' + r.name + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  modules.forEach(function(mod) {
+    mod.actions.forEach(function(actionEntry, idx) {
+      var label = ACTION_LABELS[actionEntry.action] || actionEntry.action;
+      var cls = ACTION_CLASSES[actionEntry.action] || '';
+
+      html += '<tr class="' + (idx === 0 ? 'xeplr-admin-module-first-row' : '') + '">';
+
+      // Module name cell (rowspan)
+      if (idx === 0) {
+        html += '<td class="xeplr-admin-sticky-col xeplr-admin-module-name" rowspan="' + mod.actions.length + '">' + mod.name + '</td>';
+      }
+
+      // Action cell
+      html += '<td class="xeplr-admin-action-cell ' + cls + '">' + label + '</td>';
+
+      // Role checkboxes
+      roles.forEach(function(role) {
+        var state = getModuleRoleState(actionEntry.entries, role.id);
+        var checked = state === 'all' ? ' checked' : '';
+        var partialClass = state === 'partial' ? ' xeplr-admin-partial' : '';
+
+        html += '<td class="xeplr-admin-cell"><label class="xeplr-admin-toggle">';
+        html += '<input type="checkbox"' + checked + ' onchange="toggleModule(\'' + mod.name + '\',\'' + actionEntry.action + '\',\'' + role.id + '\',\'' + state + '\')" />';
+        html += '<span class="xeplr-admin-checkmark' + partialClass + '"></span></label></td>';
+      });
+      html += '</tr>';
+    });
+  });
+
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function renderUncategorizedView(uncat) {
+  var items = uncat[uncatSubTab] || [];
+
+  // Sub-tabs
+  var html = '<div class="xeplr-admin-subtabs">';
+  UNCAT_TABS.forEach(function(tab) {
+    var count = (uncat[tab.key] || []).length;
+    var cls = 'xeplr-admin-subtab' + (uncatSubTab === tab.key ? ' xeplr-admin-subtab-active' : '');
+    html += '<button class="' + cls + '" onclick="uncatSubTab=\'' + tab.key + '\';renderAccessMatrix()">' + tab.label;
+    if (count > 0) html += '<span class="xeplr-admin-subtab-count">' + count + '</span>';
+    html += '</button>';
+  });
+  html += '</div>';
+
+  html += '<div class="xeplr-admin-matrix-wrapper"><table class="xeplr-admin-matrix" role="grid"><thead><tr>';
+  html += '<th class="xeplr-admin-sticky-col">Name</th>';
+  roles.forEach(function(r) { html += '<th class="xeplr-admin-role-header">' + r.name + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  if (items.length === 0) {
+    html += '<tr><td colspan="' + (roles.length + 1) + '" class="xeplr-admin-empty">No uncategorized items</td></tr>';
+  } else {
+    items.forEach(function(item) {
+      html += '<tr><td class="xeplr-admin-sticky-col xeplr-admin-item-name">' + item.name + '</td>';
+      roles.forEach(function(role) {
+        var checked = item.roles.indexOf(role.id) !== -1;
+        html += '<td class="xeplr-admin-cell"><label class="xeplr-admin-toggle">';
+        html += '<input type="checkbox" ' + (checked ? 'checked' : '') + ' onchange="toggleItem(\'' + uncatSubTab + '\',\'' + item.id + '\',\'' + role.id + '\')" />';
+        html += '<span class="xeplr-admin-checkmark"></span></label></td>';
+      });
+      html += '</tr>';
+    });
+  }
+
+  html += '</tbody></table></div>';
+  return html;
+}
+
+// ─── Toggle handlers ───
+
+function toggleUserRole(userId, roleId) {
+  var user = users.find(function(u) { return u.id === userId; });
+  if (!user) return;
+  var idx = user.roles.indexOf(roleId);
+  if (idx === -1) { user.roles.push(roleId); } else { user.roles.splice(idx, 1); }
+}
+
+function toggleModule(moduleName, action, roleId, currentState) {
+  var assign = currentState !== 'all';
+  TYPES.forEach(function(type) {
+    (allItems[type] || []).forEach(function(item) {
+      var parsed = parseGroup(item.group);
+      if (!parsed || parsed.module !== moduleName || parsed.action !== action) return;
+      var idx = item.roles.indexOf(roleId);
+      if (assign && idx === -1) { item.roles.push(roleId); }
+      if (!assign && idx !== -1) { item.roles.splice(idx, 1); }
+    });
+  });
+  renderAccessMatrix();
+}
+
+function toggleItem(type, itemId, roleId) {
+  var items = allItems[type] || [];
+  var item = items.find(function(i) { return i.id === itemId; });
+  if (!item) return;
+  var idx = item.roles.indexOf(roleId);
+  if (idx === -1) { item.roles.push(roleId); } else { item.roles.splice(idx, 1); }
+}
+
+// ─── Master Settings ───
+
+var MASTER_TABS = [
+  { key: 'roles', label: 'Roles', fields: [{ key: 'name', label: 'Name' }] },
+  { key: 'apis', label: 'APIs', fields: [{ key: 'name', label: 'Name' }, { key: 'group', label: 'Group', mono: true, placeholder: 'e.g. account:view' }, { key: 'isPublic', label: 'Public', bool: true }] },
+  { key: 'pages', label: 'Pages', fields: [{ key: 'name', label: 'Name' }, { key: 'group', label: 'Group', mono: true, placeholder: 'e.g. account:view' }, { key: 'isPublic', label: 'Public', bool: true }] },
+  { key: 'elements', label: 'Elements', fields: [{ key: 'name', label: 'Name' }, { key: 'group', label: 'Group', mono: true, placeholder: 'e.g. users:edit' }] },
+  { key: 'menus', label: 'Menus', fields: [{ key: 'name', label: 'Name' }, { key: 'group', label: 'Group', mono: true, placeholder: 'e.g. reports:view' }, { key: 'isPublic', label: 'Public', bool: true }] },
+];
+
+var masterTab = 'roles';
+var masterSearch = '';
+var editingId = null;
+var editForm = {};
+var nextId = 100;
+
+// Build master data from allItems
+var masterData = {
+  roles: roles.map(function(r) { return { id: r.id, name: r.name }; }),
+  apis: allItems.apis.map(function(a) { return { id: a.id, name: a.name, group: a.group, isPublic: false }; }),
+  pages: allItems.pages.map(function(p) { return { id: p.id, name: p.name, group: p.group, isPublic: false }; }),
+  elements: allItems.elements.map(function(e) { return { id: e.id, name: e.name, group: e.group }; }),
+  menus: allItems.menus.map(function(m) { return { id: m.id, name: m.name, group: m.group, isPublic: false }; }),
+};
+
+function renderMaster() {
+  var tab = MASTER_TABS.find(function(t) { return t.key === masterTab; });
+  var items = masterData[masterTab] || [];
+  var q = masterSearch.toLowerCase();
+  var filtered = items.filter(function(item) {
+    return !q || Object.values(item).some(function(v) { return v && String(v).toLowerCase().includes(q); });
+  });
+
+  var html = '<div class="xeplr-admin-container">';
+  html += '<div class="xeplr-admin-header"><h2>Master Settings</h2>';
+  html += '<div style="display:flex;gap:8px">';
+  html += '<button class="xeplr-admin-btn-primary" onclick="masterStartAdd()"' + (editingId === '__new__' ? ' disabled' : '') + '>+ Add ' + tab.label.replace(/s$/, '') + '</button>';
+  html += '</div></div>';
+
+  // Tabs
+  html += '<div class="xeplr-admin-tabs" role="tablist">';
+  MASTER_TABS.forEach(function(t) {
+    var cls = 'xeplr-admin-tab' + (masterTab === t.key ? ' xeplr-admin-tab-active' : '');
+    html += '<button role="tab" class="' + cls + '" onclick="masterTab=\'' + t.key + '\';masterSearch=\'\';editingId=null;editForm={};renderMaster()">' + t.label + '</button>';
+  });
+  html += '</div>';
+
+  // Search
+  html += '<div class="xeplr-admin-toolbar">';
+  html += '<input id="xeplr-admin-master-search" type="text" placeholder="Search ' + tab.label.toLowerCase() + '..." value="' + masterSearch + '" oninput="masterSearch=this.value;renderMaster()" class="xeplr-admin-search" />';
+  html += '</div>';
+
+  // Table
+  html += '<div class="xeplr-admin-matrix-wrapper"><table class="xeplr-admin-matrix xeplr-admin-master-table"><thead><tr>';
+  tab.fields.forEach(function(f) {
+    html += '<th' + (f.key === 'name' ? ' class="xeplr-admin-sticky-col"' : '') + '>' + f.label + '</th>';
+  });
+  html += '<th class="xeplr-admin-actions-col">Actions</th></tr></thead><tbody>';
+
+  // New row
+  if (editingId === '__new__') {
+    html += '<tr class="xeplr-admin-editing-row">';
+    tab.fields.forEach(function(f) {
+      html += '<td' + (f.key === 'name' ? ' class="xeplr-admin-sticky-col"' : '') + '>';
+      html += masterRenderField(f, editForm[f.key]);
+      html += '</td>';
+    });
+    html += '<td class="xeplr-admin-actions-col"><div class="xeplr-admin-action-btns">';
+    html += '<button class="xeplr-admin-btn-save" onclick="masterSave()" title="Save">\u2713</button>';
+    html += '<button class="xeplr-admin-btn-cancel" onclick="editingId=null;editForm={};renderMaster()" title="Cancel">\u2715</button>';
+    html += '</div></td></tr>';
+  }
+
+  if (filtered.length === 0 && editingId !== '__new__') {
+    html += '<tr><td colspan="' + (tab.fields.length + 1) + '" class="xeplr-admin-empty">No ' + tab.label.toLowerCase() + ' found</td></tr>';
+  } else {
+    filtered.forEach(function(item) {
+      var isEditing = editingId === item.id;
+      html += '<tr class="' + (isEditing ? 'xeplr-admin-editing-row' : '') + '">';
+      tab.fields.forEach(function(f) {
+        var cls = f.key === 'name' ? ' class="xeplr-admin-sticky-col"' : '';
+        if (isEditing) {
+          html += '<td' + cls + '>' + masterRenderField(f, editForm[f.key]) + '</td>';
+        } else {
+          html += '<td' + cls + '>' + masterRenderValue(f, item[f.key]) + '</td>';
+        }
+      });
+
+      html += '<td class="xeplr-admin-actions-col"><div class="xeplr-admin-action-btns">';
+      if (isEditing) {
+        html += '<button class="xeplr-admin-btn-save" onclick="masterSave()" title="Save">\u2713</button>';
+        html += '<button class="xeplr-admin-btn-cancel" onclick="editingId=null;editForm={};renderMaster()" title="Cancel">\u2715</button>';
+      } else {
+        html += '<button class="xeplr-admin-btn-edit" onclick="masterStartEdit(\'' + item.id + '\')" title="Edit"' + (editingId ? ' disabled' : '') + '>\u270E</button>';
+        html += '<button class="xeplr-admin-btn-delete" onclick="masterDelete(\'' + item.id + '\')" title="Delete"' + (editingId ? ' disabled' : '') + '>\u2715</button>';
+      }
+      html += '</div></td></tr>';
+    });
+  }
+
+  html += '</tbody></table></div></div>';
+  document.getElementById('view-master').innerHTML = html;
+}
+
+function getExistingGroups() {
+  var set = {};
+  TYPES.forEach(function(type) {
+    (allItems[type] || []).forEach(function(item) {
+      if (item.group && item.group.indexOf(':') !== -1) set[item.group] = true;
+    });
+  });
+  return Object.keys(set).sort();
+}
+
+function masterRenderField(f, val) {
+  if (f.bool) {
+    var checked = val ? ' checked' : '';
+    return '<label class="xeplr-admin-toggle"><input type="checkbox"' + checked + ' onchange="editForm[\'' + f.key + '\']=this.checked" /><span class="xeplr-admin-checkmark"></span></label>';
+  }
+  if (f.mono) {
+    var groupNames = getExistingGroups();
+    var html = '<div style="display:flex;gap:4px;align-items:center">';
+    html += '<select class="xeplr-admin-inline-input xeplr-admin-group-input" style="flex:1" onchange="editForm[\'' + f.key + '\']=this.value;renderMaster()">';
+    html += '<option value="">-- select or type new --</option>';
+    groupNames.forEach(function(name) {
+      html += '<option value="' + name + '"' + (val === name ? ' selected' : '') + '>' + name + '</option>';
+    });
+    html += '</select>';
+    html += '<input type="text" class="xeplr-admin-inline-input xeplr-admin-group-input" style="flex:1" value="' + (val || '') + '" placeholder="' + (f.placeholder || 'or type new group') + '" oninput="editForm[\'' + f.key + '\']=this.value" />';
+    html += '</div>';
+    return html;
+  }
+  return '<input type="text" class="xeplr-admin-inline-input" value="' + (val || '') + '" placeholder="' + (f.placeholder || '') + '" oninput="editForm[\'' + f.key + '\']=this.value" />';
+}
+
+function masterRenderValue(f, val) {
+  if (f.bool) return '<span class="' + (val ? 'xeplr-admin-badge-yes' : 'xeplr-admin-badge-no') + '">' + (val ? 'Yes' : 'No') + '</span>';
+  if (f.mono && val) return '<span class="xeplr-admin-group-tag">' + val + '</span>';
+  if (f.key === 'name') return '<span class="xeplr-admin-item-name">' + (val || '\u2014') + '</span>';
+  return val || '\u2014';
+}
+
+function masterStartAdd() {
+  var tab = MASTER_TABS.find(function(t) { return t.key === masterTab; });
+  editForm = {};
+  tab.fields.forEach(function(f) { editForm[f.key] = f.bool ? false : ''; });
+  editingId = '__new__';
+  renderMaster();
+}
+
+function masterStartEdit(id) {
+  var tab = MASTER_TABS.find(function(t) { return t.key === masterTab; });
+  var item = (masterData[masterTab] || []).find(function(i) { return i.id === id; });
+  if (!item) return;
+  editForm = {};
+  tab.fields.forEach(function(f) { editForm[f.key] = item[f.key] !== undefined ? item[f.key] : ''; });
+  editingId = id;
+  renderMaster();
+}
+
+function masterSave() {
+  if (editingId === '__new__') {
+    var newItem = { id: 'new' + (nextId++), ...editForm };
+    masterData[masterTab] = (masterData[masterTab] || []).concat([newItem]);
+    // Also update allItems so access matrix reflects changes
+    if (masterTab !== 'roles') {
+      allItems[masterTab] = allItems[masterTab] || [];
+      allItems[masterTab].push({ id: newItem.id, name: newItem.name, group: newItem.group || '', roles: [] });
+    } else {
+      roles.push({ id: newItem.id, name: newItem.name });
+    }
+  } else {
+    masterData[masterTab] = (masterData[masterTab] || []).map(function(item) {
+      if (item.id !== editingId) return item;
+      var updated = { ...item };
+      Object.keys(editForm).forEach(function(k) { updated[k] = editForm[k]; });
+      return updated;
+    });
+    // Sync names/groups back to allItems
+    if (masterTab !== 'roles') {
+      allItems[masterTab] = (allItems[masterTab] || []).map(function(item) {
+        if (item.id !== editingId) return item;
+        return { ...item, name: editForm.name || item.name, group: editForm.group !== undefined ? editForm.group : item.group };
+      });
+    } else {
+      roles.forEach(function(r) { if (r.id === editingId) r.name = editForm.name || r.name; });
+    }
+  }
+  editingId = null;
+  editForm = {};
+  renderMaster();
+}
+
+function masterDelete(id) {
+  if (!confirm('Delete this item?')) return;
+  masterData[masterTab] = (masterData[masterTab] || []).filter(function(i) { return i.id !== id; });
+  if (masterTab !== 'roles') {
+    allItems[masterTab] = (allItems[masterTab] || []).filter(function(i) { return i.id !== id; });
+  } else {
+    for (var i = roles.length - 1; i >= 0; i--) { if (roles[i].id === id) roles.splice(i, 1); }
+  }
+  renderMaster();
+}
+
+// ─── Theme Switcher ───
+function switchTheme(theme) {
+  document.body.className = 'xeplr-theme-' + theme;
+  try { localStorage.setItem('xeplr-theme', theme); } catch(e) {}
+}
+
+// Restore saved theme
+(function() {
+  try {
+    var saved = localStorage.getItem('xeplr-theme');
+    if (saved) {
+      document.body.className = 'xeplr-theme-' + saved;
+      document.getElementById('theme-select').value = saved;
+    }
+  } catch(e) {}
+})();
+
+// ─── Initial render ───
+renderMaster();
+renderUserRoles();
+renderAccessMatrix();
+</script>
+</body>
+</html>

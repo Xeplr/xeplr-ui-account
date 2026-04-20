@@ -1,0 +1,231 @@
+/*
+ * xeplr Theme System
+ *
+ * Usage:
+ *   1. Wrap your app in <ThemeProvider> (or just add a class to a container)
+ *   2. Apply class: <div class="xeplr-theme-dark"> ... </div>
+ *   3. All xeplr-ui-* components inside will pick up the theme
+ *
+ * Extending:
+ *   Define your own theme by creating a class with the same variables:
+ *
+ *     .xeplr-theme-corporate {
+ *       --xeplr-bg-primary: #f8f9fa;
+ *       --xeplr-bg-secondary: #ffffff;
+ *       ... etc
+ *     }
+ *
+ *   Then use <ThemeProvider theme="corporate"> or class="xeplr-theme-corporate"
+ */
+
+/* ─── Dark ─── */
+.xeplr-theme-dark {
+  /* Backgrounds */
+  --xeplr-bg-primary: #1a1a1a;
+  --xeplr-bg-secondary: #222222;
+  --xeplr-bg-tertiary: #2a2a2a;
+  --xeplr-bg-hover: #2a2a2a;
+  --xeplr-bg-active: #1a1a2a;
+  --xeplr-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Text */
+  --xeplr-text-primary: #e0e0e0;
+  --xeplr-text-secondary: #aaaaaa;
+  --xeplr-text-muted: #777777;
+  --xeplr-text-disabled: #555555;
+
+  /* Borders */
+  --xeplr-border-primary: #333333;
+  --xeplr-border-secondary: #2a2a2a;
+  --xeplr-border-focus: #646cff;
+
+  /* Accent */
+  --xeplr-accent: #646cff;
+  --xeplr-accent-hover: #535bf2;
+  --xeplr-accent-text: #ffffff;
+  --xeplr-accent-muted: #4a4a8a;
+
+  /* Semantic */
+  --xeplr-success: #6bcc6b;
+  --xeplr-success-bg: #1a2a1a;
+  --xeplr-success-border: #4aaf4a;
+  --xeplr-danger: #ff6b6b;
+  --xeplr-danger-bg: #3d1111;
+  --xeplr-danger-border: #5a1a1a;
+  --xeplr-warning: #ffaa33;
+  --xeplr-warning-bg: #2a2200;
+  --xeplr-info: #6db3ff;
+  --xeplr-info-bg: #1a2233;
+  --xeplr-info-border: #4a9eff;
+
+  /* Inputs */
+  --xeplr-input-bg: #2a2a2a;
+  --xeplr-input-border: #444444;
+  --xeplr-input-text: #e0e0e0;
+  --xeplr-input-placeholder: #666666;
+
+  /* Tags / Badges */
+  --xeplr-tag-bg: #2a2a3a;
+  --xeplr-tag-border: #3a3a5a;
+  --xeplr-tag-text: #9999cc;
+  --xeplr-badge-bg: #2a2a2a;
+  --xeplr-badge-text: #666666;
+
+  /* Shadows */
+  --xeplr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --xeplr-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --xeplr-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Light ─── */
+.xeplr-theme-light {
+  --xeplr-bg-primary: #fafafa;
+  --xeplr-bg-secondary: #f5f5f5;
+  --xeplr-bg-tertiary: #ffffff;
+  --xeplr-bg-hover: #f0f0f0;
+  --xeplr-bg-active: #f0f0ff;
+  --xeplr-bg-overlay: rgba(0, 0, 0, 0.15);
+
+  --xeplr-text-primary: #333333;
+  --xeplr-text-secondary: #666666;
+  --xeplr-text-muted: #999999;
+  --xeplr-text-disabled: #cccccc;
+
+  --xeplr-border-primary: #dddddd;
+  --xeplr-border-secondary: #eeeeee;
+  --xeplr-border-focus: #646cff;
+
+  --xeplr-accent: #646cff;
+  --xeplr-accent-hover: #535bf2;
+  --xeplr-accent-text: #ffffff;
+  --xeplr-accent-muted: #b0b0e0;
+
+  --xeplr-success: #2d7d2d;
+  --xeplr-success-bg: #e8f5e8;
+  --xeplr-success-border: #3d9e3d;
+  --xeplr-danger: #cc0000;
+  --xeplr-danger-bg: #ffe0e0;
+  --xeplr-danger-border: #f5c6c6;
+  --xeplr-warning: #e67e00;
+  --xeplr-warning-bg: #fff3e0;
+  --xeplr-info: #2a6cb5;
+  --xeplr-info-bg: #e8f0ff;
+  --xeplr-info-border: #3b8bdb;
+
+  --xeplr-input-bg: #ffffff;
+  --xeplr-input-border: #cccccc;
+  --xeplr-input-text: #333333;
+  --xeplr-input-placeholder: #aaaaaa;
+
+  --xeplr-tag-bg: #eeeeff;
+  --xeplr-tag-border: #ddddee;
+  --xeplr-tag-text: #5555cc;
+  --xeplr-badge-bg: #eeeeee;
+  --xeplr-badge-text: #888888;
+
+  --xeplr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --xeplr-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --xeplr-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Medium (balanced gray) ─── */
+.xeplr-theme-medium {
+  --xeplr-bg-primary: #2c2c2e;
+  --xeplr-bg-secondary: #3a3a3c;
+  --xeplr-bg-tertiary: #48484a;
+  --xeplr-bg-hover: #3a3a3c;
+  --xeplr-bg-active: #2c2c3e;
+  --xeplr-bg-overlay: rgba(0, 0, 0, 0.35);
+
+  --xeplr-text-primary: #e5e5e7;
+  --xeplr-text-secondary: #b0b0b2;
+  --xeplr-text-muted: #8e8e93;
+  --xeplr-text-disabled: #636366;
+
+  --xeplr-border-primary: #48484a;
+  --xeplr-border-secondary: #3a3a3c;
+  --xeplr-border-focus: #7b7fff;
+
+  --xeplr-accent: #7b7fff;
+  --xeplr-accent-hover: #6a6ef0;
+  --xeplr-accent-text: #ffffff;
+  --xeplr-accent-muted: #5a5a9a;
+
+  --xeplr-success: #7cd87c;
+  --xeplr-success-bg: #253025;
+  --xeplr-success-border: #5aaa5a;
+  --xeplr-danger: #ff7070;
+  --xeplr-danger-bg: #402020;
+  --xeplr-danger-border: #6a2a2a;
+  --xeplr-warning: #ffbb55;
+  --xeplr-warning-bg: #352a10;
+  --xeplr-info: #7abcff;
+  --xeplr-info-bg: #202a3a;
+  --xeplr-info-border: #5aaaee;
+
+  --xeplr-input-bg: #3a3a3c;
+  --xeplr-input-border: #555558;
+  --xeplr-input-text: #e5e5e7;
+  --xeplr-input-placeholder: #777777;
+
+  --xeplr-tag-bg: #3a3a4a;
+  --xeplr-tag-border: #4a4a5a;
+  --xeplr-tag-text: #aaaadd;
+  --xeplr-badge-bg: #3a3a3c;
+  --xeplr-badge-text: #8e8e93;
+
+  --xeplr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --xeplr-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --xeplr-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* ─── Bright (vibrant, energetic) ─── */
+.xeplr-theme-bright {
+  --xeplr-bg-primary: #ffffff;
+  --xeplr-bg-secondary: #f0f2ff;
+  --xeplr-bg-tertiary: #ffffff;
+  --xeplr-bg-hover: #e8ebff;
+  --xeplr-bg-active: #e0e4ff;
+  --xeplr-bg-overlay: rgba(50, 50, 100, 0.15);
+
+  --xeplr-text-primary: #1a1a2e;
+  --xeplr-text-secondary: #444466;
+  --xeplr-text-muted: #888899;
+  --xeplr-text-disabled: #bbbbcc;
+
+  --xeplr-border-primary: #d0d4ee;
+  --xeplr-border-secondary: #e0e4f4;
+  --xeplr-border-focus: #5b5fff;
+
+  --xeplr-accent: #5b5fff;
+  --xeplr-accent-hover: #4a4ef0;
+  --xeplr-accent-text: #ffffff;
+  --xeplr-accent-muted: #c0c2f0;
+
+  --xeplr-success: #1aaa55;
+  --xeplr-success-bg: #e0fae8;
+  --xeplr-success-border: #2ecc71;
+  --xeplr-danger: #e53e3e;
+  --xeplr-danger-bg: #ffe8e8;
+  --xeplr-danger-border: #fc8181;
+  --xeplr-warning: #dd8800;
+  --xeplr-warning-bg: #fff6e0;
+  --xeplr-info: #3182ce;
+  --xeplr-info-bg: #e0efff;
+  --xeplr-info-border: #63b3ed;
+
+  --xeplr-input-bg: #ffffff;
+  --xeplr-input-border: #c0c4dd;
+  --xeplr-input-text: #1a1a2e;
+  --xeplr-input-placeholder: #999aab;
+
+  --xeplr-tag-bg: #ebebff;
+  --xeplr-tag-border: #d0d0ee;
+  --xeplr-tag-text: #5555aa;
+  --xeplr-badge-bg: #e8eaff;
+  --xeplr-badge-text: #6666aa;
+
+  --xeplr-shadow-sm: 0 1px 3px rgba(90, 90, 180, 0.08);
+  --xeplr-shadow-md: 0 4px 12px rgba(90, 90, 180, 0.1);
+  --xeplr-shadow-lg: 0 8px 24px rgba(90, 90, 180, 0.15);
+}
