@@ -3,8 +3,14 @@
 /* ─── xeplr Admin Matrix ─── */
 
 .xeplr-admin-container {
-  max-width: 1200px;
-  margin: 20px auto;
+  /* Fill the available height of whatever container the host app uses
+     (e.g. the architects app's `.content` area) so the table area scrolls
+     internally instead of leaving empty whitespace below. */
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   padding: 20px;
   border: 1px solid var(--xeplr-border-primary);
   border-radius: 8px;
@@ -165,7 +171,11 @@
 /* ─── Matrix Table ─── */
 
 .xeplr-admin-matrix-wrapper {
-  overflow-x: auto;
+  /* Fills remaining height inside the flex column container so the table
+     scrolls internally and the header/tabs/toolbar stay pinned at top. */
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
   border: 1px solid var(--xeplr-border-primary);
   border-radius: 6px;
 }
@@ -522,4 +532,171 @@
   background: var(--xeplr-danger-bg);
   color: var(--xeplr-danger);
   border: 1px solid var(--xeplr-danger-border);
+}
+
+/* ── Per-row tenant assignment dropdown (replaces matrix) ── */
+.xeplr-admin-assign-dd {
+  position: relative;
+  width: 100%;
+}
+
+.xeplr-admin-assign-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  background: var(--xeplr-bg-tertiary);
+  border: 1px solid var(--xeplr-border);
+  border-radius: 6px;
+  padding: 5px 10px 5px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.xeplr-admin-assign-trigger:hover {
+  border-color: var(--xeplr-text-secondary);
+}
+
+.xeplr-admin-assign-open {
+  border-color: var(--xeplr-accent, #818cf8);
+  box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+}
+
+.xeplr-admin-assign-placeholder {
+  color: var(--xeplr-text-tertiary);
+  flex: 1;
+}
+
+.xeplr-admin-assign-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+}
+
+.xeplr-admin-assign-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--xeplr-bg-secondary);
+  border: 1px solid var(--xeplr-border);
+  border-radius: 999px;
+  padding: 2px 4px 2px 10px;
+  font-size: 12px;
+  color: var(--xeplr-text-primary);
+}
+
+.xeplr-admin-assign-chip-x {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--xeplr-bg-tertiary);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--xeplr-text-secondary);
+}
+
+.xeplr-admin-assign-chip-x:hover {
+  background: var(--xeplr-danger);
+  color: #fff;
+}
+
+.xeplr-admin-assign-caret {
+  color: var(--xeplr-text-tertiary);
+  font-size: 14px;
+  margin-left: auto;
+}
+
+.xeplr-admin-assign-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--xeplr-bg-secondary);
+  border: 1px solid var(--xeplr-border);
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.xeplr-admin-assign-search {
+  position: sticky;
+  top: 0;
+  background: var(--xeplr-bg-secondary);
+  border-bottom: 1px solid var(--xeplr-border);
+  padding: 8px 10px;
+}
+
+.xeplr-admin-assign-search input {
+  width: 100%;
+  background: var(--xeplr-bg-primary);
+  border: 1px solid var(--xeplr-border);
+  border-radius: 4px;
+  color: var(--xeplr-text-primary);
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+}
+
+.xeplr-admin-assign-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.1);
+}
+
+.xeplr-admin-assign-row:hover {
+  background: var(--xeplr-bg-tertiary);
+}
+
+.xeplr-admin-assign-row-on {
+  background: rgba(129, 140, 248, 0.1);
+}
+
+.xeplr-admin-assign-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid var(--xeplr-border);
+  background: var(--xeplr-bg-primary);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  color: transparent;
+  flex-shrink: 0;
+}
+
+.xeplr-admin-assign-check-on {
+  background: var(--xeplr-accent, #818cf8);
+  border-color: var(--xeplr-accent, #818cf8);
+  color: #fff;
+}
+
+.xeplr-admin-assign-info {
+  min-width: 0;
+}
+
+.xeplr-admin-assign-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--xeplr-text-primary);
+}
+
+.xeplr-admin-assign-meta {
+  font-size: 11px;
+  color: var(--xeplr-text-tertiary);
+  margin-top: 2px;
+}
+
+.xeplr-admin-assign-empty {
+  padding: 14px;
+  text-align: center;
+  color: var(--xeplr-text-tertiary);
+  font-size: 13px;
 }

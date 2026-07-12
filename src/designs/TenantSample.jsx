@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import './admin.css';
 
 export default function TenantSample({
@@ -143,15 +144,13 @@ function renderUserAssignment(users, tenants, search, handleAssignUser, isUserAs
       <table className="xeplr-admin-matrix" role="grid">
         <thead>
           <tr>
-            <th className="xeplr-admin-sticky-col">User</th>
-            {tenants.map(function(t) {
-              return <th key={t.id} className="xeplr-admin-role-header">{t.name}</th>;
-            })}
+            <th className="xeplr-admin-sticky-col" style={{ width: '30%' }}>User</th>
+            <th>Assigned {label}s</th>
           </tr>
         </thead>
         <tbody>
           {filtered.length === 0 ? (
-            <tr><td colSpan={tenants.length + 1} className="xeplr-admin-empty">No users found</td></tr>
+            <tr><td colSpan="2" className="xeplr-admin-empty">No users found</td></tr>
           ) : (
             filtered.map(function(u) {
               return (
@@ -160,23 +159,110 @@ function renderUserAssignment(users, tenants, search, handleAssignUser, isUserAs
                     <div className="xeplr-admin-user-name">{u.name || '\u2014'}</div>
                     <div className="xeplr-admin-user-email">{u.email}</div>
                   </td>
-                  {tenants.map(function(t) {
-                    var assigned = isUserAssignedTenant(u, t.id);
-                    return (
-                      <td key={t.id} className="xeplr-admin-cell">
-                        <label className="xeplr-admin-toggle">
-                          <input type="checkbox" checked={assigned} onChange={function() { handleAssignUser(u.id, t.id, assigned); }} />
-                          <span className="xeplr-admin-checkmark" />
-                        </label>
-                      </td>
-                    );
-                  })}
+                  <td>
+                    <AssignTenantsDropdown
+                      user={u}
+                      tenants={tenants}
+                      isAssigned={isUserAssignedTenant}
+                      onToggle={handleAssignUser}
+                      label={label}
+                    />
+                  </td>
                 </tr>
               );
             })
           )}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// \u2500\u2500 Per-row multi-select dropdown \u2500\u2500
+// Replaces the column-per-tenant matrix so the page scales to any number
+// of tenants. Trigger shows chips for assigned tenants; click opens a
+// scrollable, searchable list of all tenants with checkboxes.
+function AssignTenantsDropdown({ user, tenants, isAssigned, onToggle, label }) {
+  var [open, setOpen] = useState(false);
+  var [filter, setFilter] = useState('');
+  var rootRef = useRef(null);
+
+  useEffect(function() {
+    if (!open) return;
+    function onDocClick(e) {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return function() { document.removeEventListener('mousedown', onDocClick); };
+  }, [open]);
+
+  var assigned = tenants.filter(function(t) { return isAssigned(user, t.id); });
+  var q = filter.toLowerCase();
+  var visible = q ? tenants.filter(function(t) {
+    return (t.name && t.name.toLowerCase().includes(q)) || (t.code && t.code.toLowerCase().includes(q));
+  }) : tenants;
+
+  return (
+    <div className="xeplr-admin-assign-dd" ref={rootRef}>
+      <div
+        className={'xeplr-admin-assign-trigger' + (open ? ' xeplr-admin-assign-open' : '')}
+        onClick={function() { setOpen(!open); }}
+      >
+        {assigned.length === 0 ? (
+          <span className="xeplr-admin-assign-placeholder">Select {label.toLowerCase()}s\u2026</span>
+        ) : (
+          <div className="xeplr-admin-assign-chips">
+            {assigned.map(function(t) {
+              return (
+                <span key={t.id} className="xeplr-admin-assign-chip">
+                  {t.name}
+                  <span
+                    className="xeplr-admin-assign-chip-x"
+                    onClick={function(e) { e.stopPropagation(); onToggle(user.id, t.id, true); }}
+                    title="Remove"
+                  >{'\u00d7'}</span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        <span className="xeplr-admin-assign-caret">{'\u2304'}</span>
+      </div>
+      {open && (
+        <div className="xeplr-admin-assign-panel" role="listbox">
+          <div className="xeplr-admin-assign-search">
+            <input
+              type="text"
+              autoFocus
+              placeholder={'Search ' + label.toLowerCase() + 's\u2026'}
+              value={filter}
+              onChange={function(e) { setFilter(e.target.value); }}
+            />
+          </div>
+          {visible.length === 0 ? (
+            <div className="xeplr-admin-assign-empty">No matches</div>
+          ) : visible.map(function(t) {
+            var on = isAssigned(user, t.id);
+            return (
+              <div
+                key={t.id}
+                role="option"
+                aria-selected={on}
+                className={'xeplr-admin-assign-row' + (on ? ' xeplr-admin-assign-row-on' : '')}
+                onClick={function() { onToggle(user.id, t.id, on); }}
+              >
+                <span className={'xeplr-admin-assign-check' + (on ? ' xeplr-admin-assign-check-on' : '')}>
+                  {on ? '\u2713' : ''}
+                </span>
+                <div className="xeplr-admin-assign-info">
+                  <div className="xeplr-admin-assign-name">{t.name}</div>
+                  {t.code && <div className="xeplr-admin-assign-meta">{t.code}{t.description ? ' \u00b7 ' + t.description : ''}</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
