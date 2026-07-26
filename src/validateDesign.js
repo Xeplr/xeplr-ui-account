@@ -99,3 +99,9 @@ export var MASTER_SETTINGS_RULES = [
   { id: 'xeplr-admin-master-search', label: 'Master search input' },
   { role: 'tablist', label: 'Tab list for master types' }
 ];
+
+// Only the structure common to every Nav design (both Design 1 and Design 2
+// have an account menu; only Design 2 has a drawer, so that isn't required here).
+export var NAV_RULES = [
+  { selector: '[aria-haspopup="menu"]', label: 'Account menu trigger' }
+];

@@ -82,22 +82,16 @@
   text-decoration: underline;
 }
 
+/* In-progress status text (e.g. "Activating your account...") — error/success
+   feedback fires as a snackbar instead (see the use*Controller.js hooks), so
+   there's no -error/-success modifier here anymore. */
 .xeplr-auth-alert {
   padding: 10px 15px;
   border-radius: 4px;
   margin-bottom: 15px;
-}
-
-.xeplr-auth-alert-error {
-  background: var(--xeplr-danger-bg);
-  color: var(--xeplr-danger);
-  border: 1px solid var(--xeplr-danger-border);
-}
-
-.xeplr-auth-alert-success {
-  background: var(--xeplr-success-bg);
-  color: var(--xeplr-success);
-  border: 1px solid var(--xeplr-success-border);
+  background: var(--xeplr-info-bg);
+  color: var(--xeplr-info);
+  border: 1px solid var(--xeplr-info-border);
 }
 
 .xeplr-auth-not-activated {
@@ -109,52 +103,4 @@
   font-weight: bold;
   color: var(--xeplr-warning);
   margin: 20px 0;
-}
-
-/* Tenant Picker */
-.xeplr-tenant-picker {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.xeplr-tenant-option {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 16px;
-  border: 1px solid var(--xeplr-border-primary, #333);
-  border-radius: 8px;
-  background: var(--xeplr-bg-secondary, #222);
-  cursor: pointer;
-  transition: all 0.15s;
-  text-align: left;
-  width: 100%;
-}
-
-.xeplr-tenant-option:hover {
-  border-color: var(--xeplr-accent, #646cff);
-  background: var(--xeplr-bg-active, #1a1a2a);
-}
-
-.xeplr-tenant-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--xeplr-text-primary, #e0e0e0);
-}
-
-.xeplr-tenant-code {
-  font-size: 12px;
-  font-family: monospace;
-  color: var(--xeplr-tag-text, #9999cc);
-  background: var(--xeplr-tag-bg, #2a2a3a);
-  padding: 2px 6px;
-  border-radius: 3px;
-}
-
-.xeplr-tenant-desc {
-  font-size: 13px;
-  color: var(--xeplr-text-muted, #777);
 }

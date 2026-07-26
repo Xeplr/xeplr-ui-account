@@ -1,7 +1,9 @@
 import './auth.css';
 
+// error/success feedback fires as a snackbar (see useProfileController.js) —
+// this design doesn't render it inline.
 export default function ProfileSample({
-  form, error, success, loading, fetching, handleChange, handleSubmit
+  form, loading, fetching, handleChange, handleSubmit
 }) {
   if (fetching) {
     return (
@@ -14,8 +16,6 @@ export default function ProfileSample({
   return (
     <div className="xeplr-auth-container">
       <h1>Profile</h1>
-      {error && <div className="xeplr-auth-alert xeplr-auth-alert-error">{error}</div>}
-      {success && <div className="xeplr-auth-alert xeplr-auth-alert-success">{success}</div>}
       <form onSubmit={handleSubmit}>
         <div className="xeplr-auth-form-group">
           <label htmlFor="xeplr-profile-name">Name</label>

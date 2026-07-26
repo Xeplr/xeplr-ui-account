@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { raiseSnackbar } from '@xeplr/ui-utils';
 import { getProfile, updateProfile } from './api.js';
 
 export function useProfileController(options = {}) {
@@ -25,6 +26,7 @@ export function useProfileController(options = {}) {
       });
     } catch (err) {
       setError(err.message);
+      raiseSnackbar(err.message, { design: 'error' });
     } finally {
       setFetching(false);
     }
@@ -41,10 +43,13 @@ export function useProfileController(options = {}) {
     setLoading(true);
     try {
       var result = await updateProfile(form);
-      setSuccess('Profile updated successfully');
+      var message = 'Profile updated successfully';
+      setSuccess(message);
+      raiseSnackbar(message, { design: 'success' });
       if (onSuccess) onSuccess(result);
     } catch (err) {
       setError(err.message);
+      raiseSnackbar(err.message, { design: 'error' });
     } finally {
       setLoading(false);
     }

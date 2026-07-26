@@ -1,16 +1,16 @@
 import './auth.css';
 
+// error/success feedback fires as a snackbar (see useChangePasswordController.js)
+// — this design doesn't render it inline.
 export default function ChangePasswordSample({
   currentPassword, setCurrentPassword,
   newPassword, setNewPassword,
   confirmPassword, setConfirmPassword,
-  error, success, loading, handleSubmit
+  loading, handleSubmit
 }) {
   return (
     <div className="xeplr-auth-container">
       <h1>Change Password</h1>
-      {error && <div className="xeplr-auth-alert xeplr-auth-alert-error">{error}</div>}
-      {success && <div className="xeplr-auth-alert xeplr-auth-alert-success">{success}</div>}
       <form onSubmit={handleSubmit}>
         <div className="xeplr-auth-form-group">
           <label htmlFor="xeplr-current-password">Current Password</label>

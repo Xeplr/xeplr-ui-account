@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { raiseSnackbar } from '@xeplr/ui-utils';
 import { changePassword } from './api.js';
 
 export function useChangePasswordController(options = {}) {
@@ -17,20 +18,25 @@ export function useChangePasswordController(options = {}) {
     setSuccess('');
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      var mismatchMessage = 'Passwords do not match';
+      setError(mismatchMessage);
+      raiseSnackbar(mismatchMessage, { design: 'error' });
       return;
     }
 
     setLoading(true);
     try {
       var result = await changePassword({ currentPassword, newPassword });
-      setSuccess('Password changed successfully');
+      var message = 'Password changed successfully';
+      setSuccess(message);
+      raiseSnackbar(message, { design: 'success' });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       if (onSuccess) onSuccess(result);
     } catch (err) {
       setError(err.message);
+      raiseSnackbar(err.message, { design: 'error' });
     } finally {
       setLoading(false);
     }

@@ -1,0 +1,311 @@
+/* Uses the shared --xeplr-* theme tokens (see theme.css) — correct in both
+   light and dark automatically, as long as the app applies a .xeplr-theme-*
+   class (see ThemeContext.jsx / theme.css usage notes). */
+
+/* ─── Top bar: 10% / 80% / 10% ───
+   flexbox, not grid: fixed percentage grid tracks don't account for `gap`
+   or box-sizing the way flex-basis does, and 10%+80%+10% already sums to
+   100% before the gaps/padding are added — grid pushed the real content
+   width past the container and forced a horizontal scrollbar. flex-basis
+   percentages combined with box-sizing:border-box and the default
+   flex-shrink correctly negotiate the gaps back out of the 100%. */
+
+.xeplr-nav-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  box-sizing: border-box;
+  background: var(--xeplr-bg-tertiary);
+  border-bottom: 1px solid var(--xeplr-border-primary);
+}
+
+.xeplr-nav-left { flex: 0 1 10%; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.xeplr-nav-right { flex: 0 1 10%; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+
+.xeplr-nav-logo { height: 32px; width: auto; display: block; }
+
+.xeplr-nav-middle {
+  flex: 1 1 80%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* ─── Settings trigger + dropdown ─── */
+
+.xeplr-nav-account { position: relative; }
+
+.xeplr-nav-settings-trigger {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  color: var(--xeplr-text-secondary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  align-self: center;
+}
+.xeplr-nav-settings-trigger:hover { background: var(--xeplr-bg-hover); color: var(--xeplr-text-primary); }
+.xeplr-nav-settings-trigger svg { width: 19px; height: 19px; flex-shrink: 0; }
+
+/* Drawer, expanded: a full-width labeled row instead of a circular icon
+   button, matching .xeplr-nav-drawer-link's look. */
+.xeplr-nav-settings-trigger-labeled {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+}
+.xeplr-nav-settings-trigger-label { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.xeplr-nav-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--xeplr-accent);
+  color: var(--xeplr-accent-text);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.xeplr-nav-avatar-img { object-fit: cover; }
+
+.xeplr-nav-bell {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  color: var(--xeplr-text-secondary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  align-self: center;
+}
+.xeplr-nav-bell:hover { background: var(--xeplr-bg-hover); color: var(--xeplr-text-primary); }
+.xeplr-nav-bell svg { width: 19px; height: 19px; flex-shrink: 0; }
+
+/* Drawer, expanded: a full-width labeled row instead of a circular icon
+   button, matching .xeplr-nav-drawer-link's look. */
+.xeplr-nav-bell-labeled {
+  position: relative;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+}
+.xeplr-nav-bell-labeled .xeplr-nav-badge { position: static; margin-left: auto; }
+.xeplr-nav-bell-label { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.xeplr-nav-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--xeplr-danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+}
+
+.xeplr-nav-account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: var(--xeplr-bg-tertiary);
+  border: 1px solid var(--xeplr-border-primary);
+  border-radius: 8px;
+  box-shadow: var(--xeplr-shadow-md);
+  padding: 6px;
+  z-index: 60;
+}
+
+/* Drawer placement: trigger sits near the bottom-left of the viewport, so the
+   menu opens upward (not off the bottom edge) and rightward from the trigger
+   (not off the left edge — the default `right: 0` anchoring would run the
+   menu's width past x=0 given how narrow/close-to-the-edge the drawer is). */
+.xeplr-nav-account-menu-top {
+  top: auto;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: auto;
+}
+
+.xeplr-nav-account-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 10px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--xeplr-border-secondary);
+}
+
+.xeplr-nav-account-header-text { min-width: 0; }
+.xeplr-nav-account-name { font-size: 13px; font-weight: 600; color: var(--xeplr-text-primary); }
+.xeplr-nav-account-email { margin-top: 2px; font-size: 12px; color: var(--xeplr-text-muted); }
+
+.xeplr-nav-account-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--xeplr-text-primary);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.xeplr-nav-account-item:hover { background: var(--xeplr-bg-hover); }
+.xeplr-nav-account-logout { color: var(--xeplr-danger); }
+.xeplr-nav-account-divider { height: 1px; margin: 6px 0; background: var(--xeplr-border-secondary); }
+
+/* ─── Drawer rail — pinned to the viewport's top-left corner (0,0), full
+   height, `position: fixed` with a high z-index. A pure overlay: it never
+   pushes, offsets, or otherwise interacts with the top bar or the app's own
+   content — there IS no top bar when this renders (see pages.jsx, they're
+   mutually exclusive), and content underneath simply renders at its normal
+   position, with the drawer floating on top of whatever's in that corner.
+   No overflow set here (default: visible) so the account-menu popup in the
+   footer can escape this box — only the scrollable nav-links list below
+   clips/scrolls on its own. */
+
+.xeplr-nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 16px 10px;
+  background: var(--xeplr-bg-tertiary);
+  border-right: 1px solid var(--xeplr-border-primary);
+  box-shadow: var(--xeplr-shadow-lg);
+  transition: width 0.15s;
+  flex-shrink: 0;
+}
+
+.xeplr-nav-drawer-collapsed { width: 60px; }
+.xeplr-nav-drawer-expanded { width: 240px; padding: 16px; }
+
+.xeplr-nav-drawer-toggle {
+  display: block;
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  padding: 0;
+  margin-bottom: 12px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+/* Fixed, small, and never swapped for a different image (see NavDrawer.jsx) —
+   deliberately smaller than the collapsed rail's content width (60px rail -
+   20px padding = 40px) so it can never force the rail wider than intended. */
+.xeplr-nav-drawer-logo { width: 22px; height: 22px; object-fit: contain; display: block; }
+
+/* Its own row, real height — typically a stacked icon+wordmark lockup
+   (near-square, not a wide banner), so 22px (the toggle icon's height) would
+   crush the wordmark to a few illegible pixels. */
+.xeplr-nav-drawer-expanded-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-bottom: 16px;
+  align-self: flex-start;
+}
+
+.xeplr-nav-drawer-search {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--xeplr-border-secondary);
+  border-radius: 6px;
+  background: var(--xeplr-bg-primary);
+  color: var(--xeplr-text-primary);
+  font-size: 13px;
+}
+
+.xeplr-nav-drawer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.xeplr-nav-drawer-group { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; }
+.xeplr-nav-drawer-group-label {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--xeplr-text-muted);
+}
+
+.xeplr-nav-drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--xeplr-text-primary);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.xeplr-nav-drawer-link:hover { background: var(--xeplr-bg-hover); }
+.xeplr-nav-drawer-collapsed .xeplr-nav-drawer-link { justify-content: center; }
+
+.xeplr-nav-drawer-icon { display: grid; place-items: center; flex-shrink: 0; }
+.xeplr-nav-drawer-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.xeplr-nav-drawer-empty { padding: 10px 12px; color: var(--xeplr-text-muted); font-size: 13px; }
+
+.xeplr-nav-drawer-promo { padding-top: 12px; }
+
+/* Settings (AccountMenu, placement="top") + notifications — the drawer's
+   footer, since there's no top bar for them to live in when the drawer is
+   the whole nav. `.xeplr-nav-drawer-links` already has flex:1, so this and
+   any promo above it are naturally pushed to the bottom without needing
+   their own margin-top:auto. */
+.xeplr-nav-drawer-footer {
+  display: flex;
+  flex-direction: column;
+  /* stretch so the expanded (labeled) rows can go full-width; the collapsed
+     circular icon buttons self-center via their own align-self: center. */
+  align-items: stretch;
+  gap: 6px;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--xeplr-border-secondary);
+}

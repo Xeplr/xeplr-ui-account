@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { raiseSnackbar } from '@xeplr/ui-utils';
 import { loginUser } from './api.js';
 import { setToken, setRefreshToken } from './token.js';
 import { useAccess } from './AccessContext.jsx';
@@ -37,6 +38,7 @@ export function useLoginController(options = {}) {
         navigate(notActivatedPath);
       } else {
         setError(err.message);
+        raiseSnackbar(err.message, { design: 'error' });
       }
     } finally {
       setLoading(false);

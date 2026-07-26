@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import './auth.css';
 
-export default function ResetPasswordSample({ token, password, setPassword, error, success, loading, handleSubmit }) {
+// error/success feedback fires as a snackbar (see useResetPasswordController.js,
+// including the "invalid link" case) — this design doesn't render it inline,
+// it just switches which block is visible.
+export default function ResetPasswordSample({ token, password, setPassword, success, loading, handleSubmit }) {
   if (!token && !success) {
     return (
       <div className="xeplr-auth-container">
-        <div className="xeplr-auth-alert xeplr-auth-alert-error">Invalid reset link</div>
         <div className="xeplr-auth-links">
           <p><Link to="/auth/forgot-password">Request a new reset link</Link></p>
         </div>
@@ -16,14 +18,10 @@ export default function ResetPasswordSample({ token, password, setPassword, erro
   return (
     <div className="xeplr-auth-container">
       <h1>Reset Password</h1>
-      {error && <div className="xeplr-auth-alert xeplr-auth-alert-error">{error}</div>}
       {success && (
-        <>
-          <div className="xeplr-auth-alert xeplr-auth-alert-success">{success}</div>
-          <div className="xeplr-auth-links">
-            <p><Link to="/auth/login">Go to Login</Link></p>
-          </div>
-        </>
+        <div className="xeplr-auth-links">
+          <p><Link to="/auth/login">Go to Login</Link></p>
+        </div>
       )}
       {!success && (
         <form onSubmit={handleSubmit}>

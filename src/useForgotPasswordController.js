@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { raiseSnackbar } from '@xeplr/ui-utils';
 import { forgotPassword } from './api.js';
 
 export function useForgotPasswordController() {
@@ -15,8 +16,10 @@ export function useForgotPasswordController() {
     try {
       const result = await forgotPassword({ email });
       setSuccess(result.message);
+      raiseSnackbar(result.message, { design: 'success' });
     } catch (err) {
       setError(err.message);
+      raiseSnackbar(err.message, { design: 'error' });
     } finally {
       setLoading(false);
     }

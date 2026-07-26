@@ -37,32 +37,3 @@ export function toggleModuleRole({ module, action, roleId, assign }) {
     body: JSON.stringify({ module, action, roleId, assign }),
   });
 }
-
-// ─── Tenant management (Super Admin) ───
-
-export function getTenants(level) {
-  var url = '/auth/api/admin/tenants';
-  if (level) url += '?level=' + level;
-  return authFetch(url);
-}
-
-export function saveTenant(data) {
-  return authFetch('/auth/api/admin/tenants', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-}
-
-export function deleteTenant(id) {
-  return authFetch('/auth/api/admin/tenants/delete', {
-    method: 'POST',
-    body: JSON.stringify({ id }),
-  });
-}
-
-export function assignUserTenant({ userId, tenantId, level }) {
-  return authFetch('/auth/api/admin/tenants/assign-user', {
-    method: 'POST',
-    body: JSON.stringify({ userId, tenantId, level }),
-  });
-}

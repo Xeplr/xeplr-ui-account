@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
 import './auth.css';
 
-export default function RegisterSample({ form, error, success, loading, handleChange, handleSubmit }) {
+// error/success feedback fires as a snackbar (see useRegisterController.js) —
+// this design doesn't render it inline.
+export default function RegisterSample({ form, loading, handleChange, handleSubmit }) {
   return (
     <div className="xeplr-auth-container">
       <h1>Register</h1>
-      {error && <div className="xeplr-auth-alert xeplr-auth-alert-error">{error}</div>}
-      {success && <div className="xeplr-auth-alert xeplr-auth-alert-success">{success}</div>}
       <form onSubmit={handleSubmit}>
         <div className="xeplr-auth-form-group">
           <label htmlFor="xeplr-name">Name</label>

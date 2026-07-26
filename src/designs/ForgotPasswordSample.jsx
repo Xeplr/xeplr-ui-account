@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
 import './auth.css';
 
-export default function ForgotPasswordSample({ email, setEmail, error, success, loading, handleSubmit }) {
+// error/success feedback fires as a snackbar (see useForgotPasswordController.js)
+// — this design doesn't render it inline.
+export default function ForgotPasswordSample({ email, setEmail, loading, handleSubmit }) {
   return (
     <div className="xeplr-auth-container">
       <h1>Forgot Password</h1>
-      {error && <div className="xeplr-auth-alert xeplr-auth-alert-error">{error}</div>}
-      {success && <div className="xeplr-auth-alert xeplr-auth-alert-success">{success}</div>}
       <form onSubmit={handleSubmit}>
         <div className="xeplr-auth-form-group">
           <label htmlFor="xeplr-email">Email</label>

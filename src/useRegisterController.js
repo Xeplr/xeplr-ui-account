@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { raiseSnackbar } from '@xeplr/ui-utils';
 import { registerUser } from './api.js';
 
 export function useRegisterController(options = {}) {
@@ -20,11 +21,14 @@ export function useRegisterController(options = {}) {
     setLoading(true);
     try {
       const result = await registerUser(form);
-      setSuccess('Registration successful. Please wait, someone will activate you.');
+      const message = 'Registration successful. Please wait, someone will activate you.';
+      setSuccess(message);
+      raiseSnackbar(message, { design: 'success' });
       setForm({ name: '', email: '', phoneNumber: '', password: '' });
       if (onSuccess) onSuccess(result);
     } catch (err) {
       setError(err.message);
+      raiseSnackbar(err.message, { design: 'error' });
     } finally {
       setLoading(false);
     }
