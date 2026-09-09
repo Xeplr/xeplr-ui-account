@@ -4,6 +4,7 @@ import { raiseSnackbar } from '@xeplr/ui-utils';
 import { loginUser } from './api.js';
 import { setToken, setRefreshToken } from './token.js';
 import { useAccess } from './AccessContext.jsx';
+import { consumeReturnTo } from './returnTo.js';
 
 export function useLoginController(options = {}) {
   const [email, setEmail] = useState('');
@@ -15,7 +16,11 @@ export function useLoginController(options = {}) {
   // Safe — returns null if no AccessProvider wraps the app
   const accessCtx = useAccess();
 
-  const onSuccess = options.onSuccess || (() => navigate('/'));
+  // Default: back to wherever a gate (ProtectedRoute, or an app's own gate)
+  // sent the user here from, not always home — see returnTo.js. A caller
+  // that supplies its own onSuccess owns navigation entirely; this default
+  // only applies when they don't.
+  const onSuccess = options.onSuccess || (() => navigate(consumeReturnTo() || '/'));
   const notActivatedPath = options.notActivatedPath || '/auth/not-activated';
 
   async function handleSubmit(e) {

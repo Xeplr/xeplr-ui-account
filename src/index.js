@@ -1,5 +1,5 @@
 // API client
-export { configure, registerUser, loginUser, activateAccount, forgotPassword, resetPassword, changePassword, getProfile, updateProfile, uploadAvatar, logoutUser, authFetch } from './api.js';
+export { configure, setSessionExpiredHandler, registerUser, loginUser, activateAccount, forgotPassword, resetPassword, changePassword, getMe, getProfile, updateProfile, uploadAvatar, logoutUser, authFetch } from './api.js';
 
 // Token helpers
 export { getToken, setToken, getRefreshToken, setRefreshToken, getUser, setUser, clearAuth, isAuthenticated } from './token.js';
@@ -12,7 +12,12 @@ export { registerMTs, getMtConfig } from './mt.js';
 // Active scope (e.g. company/workspace), keyed by MT level (l1, l2, ...) — a
 // bare, app-interpreted value per level, attached to every authFetch call as
 // that level's configured header. See activeScope.js.
-export { getActiveScope, setActiveScope, clearActiveScope } from './activeScope.js';
+export { getActiveScope, setActiveScope, clearActiveScope, getLastScope, setLastScope } from './activeScope.js';
+
+// Where to send the user once a redirect-driven gate (auth, or an app's own
+// gate) resolves — e.g. back to the exact dashboard a deep link pointed at,
+// rather than always home. See returnTo.js.
+export { saveReturnTo, consumeReturnTo } from './returnTo.js';
 
 // Controller hooks
 export { useLoginController } from './useLoginController.js';
@@ -43,7 +48,7 @@ export { getMasterItems, saveMasterItem, deleteMasterItem, MASTER_TYPES } from '
 export { useDesignValidator, LOGIN_RULES, REGISTER_RULES, FORGOT_PASSWORD_RULES, RESET_PASSWORD_RULES, CHANGE_PASSWORD_RULES, PROFILE_RULES, USER_ROLES_MATRIX_RULES, ACCESS_MATRIX_RULES, MASTER_SETTINGS_RULES, NAV_RULES } from './validateDesign.js';
 
 // Sample designs (use as reference or starting point)
-export { LoginSample, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, AccountMenu, NavDrawer, NotificationsBell } from './designs/index.js';
+export { LoginSample, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, AccountMenu, NavDrawer, NavFloatingSettings, NotificationsBell } from './designs/index.js';
 
 // Ready-made pages (controller + sample design wired together; each takes an optional `design` prop)
 export { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ActivatePage, NotActivatedPage, ChangePasswordPage, ProfilePage, UserRolesPage, AccessMatrixPage, MasterSettingsPage, NavPage } from './pages.jsx';

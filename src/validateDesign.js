@@ -4,8 +4,13 @@ import { useEffect, useRef } from 'react';
  * Validates that required elements exist in the rendered design.
  * Throws a visible error if any required element is missing.
  *
+ * A rule matches by id, role or selector. `anyOf` takes a list of selectors
+ * and passes when ANY one is present — which is what a design with tabs or
+ * steps needs, since only the current one is mounted and demanding all of
+ * them at once can never pass.
+ *
  * @param {string} componentName - Name of the page (for error messages)
- * @param {Array<{id?: string, role?: string, selector?: string, label: string}>} requiredElements
+ * @param {Array<{id?: string, role?: string, selector?: string, anyOf?: string[], label: string}>} requiredElements
  */
 export function useDesignValidator(componentName, requiredElements) {
   var containerRef = useRef(null);
@@ -26,12 +31,19 @@ export function useDesignValidator(componentName, requiredElements) {
           found = !!containerRef.current.querySelector('#' + rule.id);
         } else if (rule.role) {
           found = !!containerRef.current.querySelector('[role="' + rule.role + '"]');
+        } else if (rule.anyOf) {
+          for (var j = 0; j < rule.anyOf.length && !found; j++) {
+            found = !!containerRef.current.querySelector(rule.anyOf[j]);
+          }
         } else if (rule.selector) {
           found = !!containerRef.current.querySelector(rule.selector);
         }
 
         if (!found) {
-          missing.push(rule.label + (rule.id ? ' (id="' + rule.id + '")' : '') + (rule.selector ? ' (' + rule.selector + ')' : ''));
+          var where = rule.id ? ' (id="' + rule.id + '")'
+            : rule.anyOf ? ' (one of: ' + rule.anyOf.join(', ') + ')'
+            : rule.selector ? ' (' + rule.selector + ')' : '';
+          missing.push(rule.label + where);
         }
       }
 

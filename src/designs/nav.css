@@ -197,7 +197,18 @@
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 90;
+  /* ABOVE .xeplr-nav-floating (400). Both are global chrome, so the tie goes
+     to the one being operated: widen the drawer and it reaches under the
+     floating bell/settings in the top-right corner, where those two icons
+     swallow clicks meant for the drawer — the resize handle's top edge
+     included. The floating cluster keeps 400 and still outranks page-level
+     chrome, which is what that value is actually for.
+
+     THE CEILING THIS SETS: a real full-screen modal must out-stack this, or
+     the rail punches through it. Consumers with one are expected to sit above
+     500 — xeplr-bi's .dsh-expanded-backdrop was moved to 600 when this
+     changed. */
+  z-index: 500;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -210,7 +221,51 @@
 }
 
 .xeplr-nav-drawer-collapsed { width: 60px; }
+/* The 240px is the DEFAULT only — NavDrawer sets an inline width from the
+   remembered drag, which outranks this. Kept here so the drawer still has a
+   sane width if the controller's stored value is unreadable. */
 .xeplr-nav-drawer-expanded { width: 240px; padding: 16px; }
+
+/* Mid-drag the width changes every pointermove, and a 0.15s transition on it
+   means the edge chases the cursor instead of tracking it. Kill it for the
+   duration; the toggle animation is unaffected because it never coincides
+   with a drag. */
+.xeplr-nav-drawer-resizing { transition: none; }
+
+/* ── the resize handle ─────────────────────────────────────────────────
+   Straddles the right border (right: -3px on a 6px strip) rather than sitting
+   inside it, so the grab target covers the edge the user is actually aiming
+   at — an inside-only strip makes you undershoot into the nav. */
+.xeplr-nav-drawer-resize {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  /* Invisible until wanted: an always-on divider line reads as a border and
+     invites clicks that do nothing. */
+  background: transparent;
+  transition: background 0.12s;
+  /* Above the drawer's own content so the grab always lands on the handle.
+     Local to the drawer's stacking context, so it stays under the footer's
+     account popup rather than competing with the page. */
+  z-index: 1;
+}
+.xeplr-nav-drawer-resize:hover,
+.xeplr-nav-drawer-resize:focus-visible,
+.xeplr-nav-drawer-resizing .xeplr-nav-drawer-resize {
+  background: var(--xeplr-accent, #2563eb);
+}
+/* The focus ring would be a 6px sliver and easy to miss; the accent fill above
+   is the visible focus state, so the default outline only gets in its way. */
+.xeplr-nav-drawer-resize:focus-visible { outline: none; }
+
+/* Set on <body> for the length of the drag (see useNavController). A drag
+   routinely outruns the 6px handle, and without this the cursor flips back to
+   a caret and the page starts blue-selecting the moment it does. */
+body.xeplr-nav-resizing { user-select: none; }
+body.xeplr-nav-resizing * { cursor: col-resize !important; }
 
 .xeplr-nav-drawer-toggle {
   display: block;
@@ -221,6 +276,23 @@
   margin-bottom: 12px;
   cursor: pointer;
   align-self: flex-start;
+}
+/* CENTRED WHEN COLLAPSED, like everything under it.
+   The rail's links get `justify-content: center`, so their icons sit in the
+   middle of the 40px of content width. The toggle had `padding: 0` and
+   `align-self: flex-start`, which pinned the logo hard against the left edge —
+   so the mark and the first menu icon were visibly on two different vertical
+   lines, which is the one thing a rail of icons cannot afford. */
+.xeplr-nav-drawer-collapsed .xeplr-nav-drawer-toggle { align-self: center; }
+
+/* The collapse affordance, when the lockup below is carrying the brand. */
+.xeplr-nav-drawer-collapse {
+  display: block;
+  width: 22px;
+  line-height: 22px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--xeplr-text-secondary, #8b8f9a);
 }
 
 /* Fixed, small, and never swapped for a different image (see NavDrawer.jsx) —
@@ -289,6 +361,42 @@
 .xeplr-nav-drawer-icon { display: grid; place-items: center; flex-shrink: 0; }
 .xeplr-nav-drawer-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* ── item badges ─────────────────────────────────────────────────────────
+   Optional `item.badge`. The pill takes the remaining width (margin-left
+   auto) so counts line up down the rail instead of tracking label lengths.
+   The label keeps flex:1 so a long name still ellipsises rather than pushing
+   the pill off the edge. */
+.xeplr-nav-drawer-link-badged .xeplr-nav-drawer-label { flex: 1; }
+.xeplr-nav-drawer-badge {
+  margin-left: auto;
+  flex-shrink: 0;
+  min-width: 18px;
+  padding: 1px 6px;
+  border-radius: 9px;
+  background: var(--xeplr-danger, #c0392b);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
+/* Collapsed: the rail is icons only, so the count becomes a dot pinned to the
+   icon's corner. `position: relative` on the icon rather than the button
+   because the button is centred and the icon is what the eye is on. */
+.xeplr-nav-drawer-collapsed .xeplr-nav-drawer-icon { position: relative; }
+.xeplr-nav-drawer-dot {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--xeplr-danger, #c0392b);
+  /* Against the rail's own background, so the dot reads as ON the icon rather
+     than as part of it. */
+  box-shadow: 0 0 0 2px var(--xeplr-bg-elevated, #fff);
+}
+
 .xeplr-nav-drawer-empty { padding: 10px 12px; color: var(--xeplr-text-muted); font-size: 13px; }
 
 .xeplr-nav-drawer-promo { padding-top: 12px; }
@@ -308,4 +416,24 @@
   padding-top: 12px;
   margin-top: 12px;
   border-top: 1px solid var(--xeplr-border-secondary);
+}
+
+/* Opt-in alternative to the drawer footer above (see NavPage's `floatingSettings`
+   prop) — same bell + account trigger, floating over the page instead of
+   pinned to the drawer. Just the two icons themselves, no card/box around
+   them — no background, border, or shadow.
+
+   z-index sits above page-level floating chrome, not below it. The icons
+   themselves never overlap anything, but the account menu drops DOWN over the
+   page — and a settings menu that opens behind a page toolbar is unusable.
+   Global chrome wins over page tools; a consumer's own floating toolbar
+   should stay below this and position itself clear of the icons. */
+.xeplr-nav-floating {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

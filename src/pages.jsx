@@ -10,7 +10,7 @@ import { useUserRolesController } from './useUserRolesController.js';
 import { useAccessMatrixController } from './useAccessMatrixController.js';
 import { useMasterSettingsController } from './useMasterSettingsController.js';
 import { useNavController } from './useNavController.js';
-import { LoginSample, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, NavDrawer } from './designs/index.js';
+import { LoginSample, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, NavDrawer, NavFloatingSettings } from './designs/index.js';
 import { useDesignValidator, LOGIN_RULES, REGISTER_RULES, FORGOT_PASSWORD_RULES, RESET_PASSWORD_RULES, CHANGE_PASSWORD_RULES, PROFILE_RULES, USER_ROLES_MATRIX_RULES, ACCESS_MATRIX_RULES, MASTER_SETTINGS_RULES, NAV_RULES } from './validateDesign.js';
 
 /**
@@ -111,11 +111,19 @@ export function MasterSettingsPage({ design, ...props }) {
 // vertical rail) — it's simply unused whenever a drawer is present.
 // See useNavController.js for the drawerItems/settingsOverrides/notifications
 // props this accepts.
-function NavPageImpl({ design, logo, expandedLogo, navMiddle, drawerPromo, ...props }) {
+//
+// `floatingSettings` (optional, default false): when true AND a drawer is in
+// use, the drawer's own bottom-pinned bell/settings are suppressed and
+// replaced by NavFloatingSettings — the same two controls floating in the
+// page's top-right corner instead. A no-op without a drawer: the plain
+// top-bar path already renders them inline at top-right (NavTopSample's
+// `.xeplr-nav-right`), so there's nothing to move there.
+function NavPageImpl({ design, logo, expandedLogo, navMiddle, drawerPromo, floatingSettings, ...props }) {
   var controller = useNavController(props);
   var ref = useDesignValidator('NavPage', NAV_RULES);
   var TopBar = design || NavTopSample;
   var hasDrawer = controller.drawerItems.length > 0;
+  var floating = floatingSettings && hasDrawer;
   return (
     <div ref={ref}>
       {hasDrawer ? (
@@ -124,6 +132,7 @@ function NavPageImpl({ design, logo, expandedLogo, navMiddle, drawerPromo, ...pr
           logo={logo}
           expandedLogo={expandedLogo}
           drawerPromo={drawerPromo}
+          hideFooterIcons={floating}
         />
       ) : (
         <TopBar
@@ -132,6 +141,7 @@ function NavPageImpl({ design, logo, expandedLogo, navMiddle, drawerPromo, ...pr
           navMiddle={navMiddle}
         />
       )}
+      {floating && <NavFloatingSettings {...controller} />}
     </div>
   );
 }

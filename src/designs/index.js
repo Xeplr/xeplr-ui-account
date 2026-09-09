@@ -12,4 +12,5 @@ export { default as MasterSettingsSample } from './MasterSettingsSample.jsx';
 export { default as NavTopSample } from './NavTopSample.jsx';
 export { default as AccountMenu } from './AccountMenu.jsx';
 export { default as NavDrawer } from './NavDrawer.jsx';
+export { default as NavFloatingSettings } from './NavFloatingSettings.jsx';
 export { default as NotificationsBell } from './NotificationsBell.jsx';

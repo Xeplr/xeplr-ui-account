@@ -6,6 +6,10 @@ import { activateAccount } from './api.js';
 export function useActivateController() {
   var [searchParams] = useSearchParams();
   var token = searchParams.get('token');
+  // Put there by @xeplr/auth's register() when the registration was one step
+  // of a workflow. Handed back untouched so the server can release the step
+  // that was waiting — this page never interprets it.
+  var workflowKey = searchParams.get('workflowKey');
   var [error, setError] = useState('');
   var [success, setSuccess] = useState('');
   var [loading, setLoading] = useState(false);
@@ -24,7 +28,7 @@ export function useActivateController() {
     setLoading(true);
     setError('');
     setSuccess('');
-    activateAccount(token)
+    activateAccount(token, workflowKey)
       .then(function(result) {
         var message = result.message || 'Account activated successfully';
         setSuccess(message);
@@ -37,7 +41,7 @@ export function useActivateController() {
       .finally(function() {
         setLoading(false);
       });
-  }, [token]);
+  }, [token, workflowKey]);
 
   return {
     token,

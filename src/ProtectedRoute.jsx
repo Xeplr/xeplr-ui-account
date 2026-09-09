@@ -1,5 +1,6 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAccessStrict } from './AccessContext.jsx';
+import { saveReturnTo } from './returnTo.js';
 
 /**
  * ProtectedRoute — guards a route based on auth and access.
@@ -35,8 +36,10 @@ export function ProtectedRoute({
   deniedPath = '/auth/login'
 }) {
   const { authenticated, hasPage, hasRole } = useAccessStrict();
+  const location = useLocation();
 
   if (!authenticated) {
+    saveReturnTo(location);
     return <Navigate to={loginPath} replace />;
   }
 

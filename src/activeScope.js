@@ -27,6 +27,31 @@ export function setActiveScope(level, scope) {
   } catch (e) {}
 }
 
+const LAST_STORAGE_PREFIX = 'xeplr:lastScope:';
+
+/**
+ * The last value set at a given level, independent of the ACTIVE scope above
+ * and deliberately untouched by clearActiveScope() — so an app can offer to
+ * resume the same company/workspace after a logout without silently
+ * bypassing whatever cleared the active scope. A caller decides whether and
+ * how to re-verify eligibility before trusting this; auth doesn't.
+ */
+export function getLastScope(level) {
+  try {
+    const raw = localStorage.getItem(LAST_STORAGE_PREFIX + level);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function setLastScope(level, scope) {
+  try {
+    if (scope) localStorage.setItem(LAST_STORAGE_PREFIX + level, JSON.stringify(scope));
+    else localStorage.removeItem(LAST_STORAGE_PREFIX + level);
+  } catch (e) {}
+}
+
 /**
  * Clear one level's scope, or every level if omitted (e.g. on logout).
  */
