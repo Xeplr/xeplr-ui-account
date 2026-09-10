@@ -1,6 +1,6 @@
 {
   "name": "@xeplr/ui-account",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Account UI: auth, profile, RBAC admin, tenant management — React controller hooks and designs",
   "type": "module",
   "main": "src/index.js",
