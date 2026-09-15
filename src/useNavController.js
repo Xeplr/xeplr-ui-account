@@ -182,9 +182,11 @@ export function useNavController(props) {
   // builtin section — role-filtered the same way for both.
   var accountItems = useMemo(function() {
     var overrides = labelMenuItems(props.settingsOverrides, access);
-    var builtin = BUILTIN_SETTINGS_ITEMS
-      .filter(function(item) { return allowedMenus.indexOf(item.menuName) !== -1; })
-      .map(function(item) { return { name: item.menuName, path: authPath(item.authKey) }; });
+    // Same key → label treatment as the app's own items, so a Super Admin's
+    // rename of "Profile" shows here too.
+    var builtin = labelMenuItems(BUILTIN_SETTINGS_ITEMS.map(function(item) {
+      return { key: item.menuName, name: item.menuName, path: authPath(item.authKey) };
+    }), access);
     return overrides.concat(builtin);
   }, [allowedMenus, access, props.settingsOverrides]);
 
