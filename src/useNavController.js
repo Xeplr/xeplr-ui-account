@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { labelMenuItems } from './menuLabels.js';
 import { useAccessStrict } from './AccessContext.jsx';
 import { authPath } from './authRoutes.jsx';
 
@@ -180,21 +181,20 @@ export function useNavController(props) {
   // Settings dropdown, in render order: app overrides first, then the fixed
   // builtin section — role-filtered the same way for both.
   var accountItems = useMemo(function() {
-    var overrides = (props.settingsOverrides || [])
-      .filter(function(item) { return allowedMenus.indexOf(item.name) !== -1; });
+    var overrides = labelMenuItems(props.settingsOverrides, access);
     var builtin = BUILTIN_SETTINGS_ITEMS
       .filter(function(item) { return allowedMenus.indexOf(item.menuName) !== -1; })
       .map(function(item) { return { name: item.menuName, path: authPath(item.authKey) }; });
     return overrides.concat(builtin);
-  }, [allowedMenus, props.settingsOverrides]);
+  }, [allowedMenus, access, props.settingsOverrides]);
 
   var notificationsAllowed = allowedMenus.indexOf(NOTIFICATIONS_MENU_NAME) !== -1;
 
-  // Role-filter the app's own drawer catalog down to what this user can actually see.
+  // Role-filter the app's own drawer catalog down to what this user can see —
+  // matched by KEY, shown by the LABEL the server holds, in the server's order.
   var drawerItems = useMemo(function() {
-    var catalog = props.drawerItems || [];
-    return catalog.filter(function(m) { return allowedMenus.indexOf(m.name) !== -1; });
-  }, [props.drawerItems, allowedMenus]);
+    return labelMenuItems(props.drawerItems, access);
+  }, [props.drawerItems, access]);
 
   return {
     user: accessCtx.user,

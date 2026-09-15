@@ -37,3 +37,24 @@ export function toggleModuleRole({ module, action, roleId, assign }) {
     body: JSON.stringify({ module, action, roleId, assign }),
   });
 }
+
+// ── Menu items: key, label, order, visibility (Super Admin) ──────────────
+
+/** Every menu item, hidden ones included: [{ name, label, shown, sortOrder, isHidden, isPublic }]. */
+export function listMenuItems() {
+  return authFetch('/auth/api/admin/menu-items');
+}
+
+/** Rename / reorder / hide by key: [{ name, label?, sortOrder?, isHidden? }]. */
+export function saveMenuItems(items) {
+  return authFetch('/auth/api/admin/menu-items', { method: 'POST', body: JSON.stringify({ items }) });
+}
+
+/** A new item — e.g. a form added to the menu: { name: key, label }. */
+export function addMenuItem(item) {
+  return authFetch('/auth/api/admin/menu-items/add', { method: 'POST', body: JSON.stringify(item) });
+}
+
+export function removeMenuItem(name) {
+  return authFetch('/auth/api/admin/menu-items/remove', { method: 'POST', body: JSON.stringify({ name }) });
+}

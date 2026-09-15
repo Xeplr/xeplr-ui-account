@@ -41,7 +41,8 @@ export { ProtectedRoute } from './ProtectedRoute.jsx';
 export { AccessGuard } from './AccessGuard.jsx';
 
 // Admin API (model layer for RBAC management)
-export { getUsers, getRoles, getAccessItems, toggleUserRole, toggleAccessRole, toggleModuleRole } from './adminApi.js';
+export { getUsers, getRoles, getAccessItems, toggleUserRole, toggleAccessRole, toggleModuleRole, listMenuItems, saveMenuItems, addMenuItem, removeMenuItem } from './adminApi.js';
+export { labelMenuItems } from './menuLabels.js';
 export { getMasterItems, saveMasterItem, deleteMasterItem, MASTER_TYPES } from './masterApi.js';
 
 // Design validation (use when building custom designs)

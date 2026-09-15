@@ -55,7 +55,7 @@ function NavDrawer({
   var visibleItems = useMemo(function() {
     if (!drawerOpen || !query.trim()) return drawerItems;
     var q = query.trim().toLowerCase();
-    return drawerItems.filter(function(item) { return item.name.toLowerCase().indexOf(q) !== -1; });
+    return drawerItems.filter(function(item) { return String(item.label || item.name).toLowerCase().indexOf(q) !== -1; });
   }, [drawerItems, query, drawerOpen]);
 
   var buckets = useMemo(function() { return bucketItems(visibleItems); }, [visibleItems]);
@@ -74,13 +74,13 @@ function NavDrawer({
     var badge = item.badge === 0 || item.badge == null || item.badge === '' ? null : item.badge;
     return (
       <button
-        key={item.name}
+        key={item.key || item.name}
         type="button"
         className={'xeplr-nav-drawer-link' + (badge ? ' xeplr-nav-drawer-link-badged' : '')}
         onClick={item.clickHandler}
         // The count belongs in the tooltip too — the collapsed dot says
         // "something", and the hover has to say how many.
-        title={badge ? item.name + ' (' + badge + ')' : item.name}
+        title={badge ? (item.label || item.name) + ' (' + badge + ')' : (item.label || item.name)}
       >
         {item.icon && (
           <span className="xeplr-nav-drawer-icon">
@@ -88,7 +88,7 @@ function NavDrawer({
             {badge && !drawerOpen && <span className="xeplr-nav-drawer-dot" aria-hidden="true" />}
           </span>
         )}
-        {drawerOpen && <span className="xeplr-nav-drawer-label">{item.name}</span>}
+        {drawerOpen && <span className="xeplr-nav-drawer-label">{item.label || item.name}</span>}
         {drawerOpen && badge && <span className="xeplr-nav-drawer-badge">{badge}</span>}
       </button>
     );

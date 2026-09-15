@@ -52,8 +52,8 @@ function AccountMenu({
 
           {(accountItems || []).map(function(item) {
             return (
-              <Link key={item.name} to={item.path} className="xeplr-nav-account-item" role="menuitem" onClick={closeAccount}>
-                {item.name}
+              <Link key={item.key || item.name} to={item.path} className="xeplr-nav-account-item" role="menuitem" onClick={closeAccount}>
+                {item.label || item.name}
               </Link>
             );
           })}
