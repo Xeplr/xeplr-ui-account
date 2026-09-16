@@ -164,7 +164,14 @@ const saved = await authFetch('/api/tasks', { method: 'POST', body: JSON.stringi
 
 **It returns the parsed JSON body, not a `Response`** — there is no `.json()` to call. It:
 
-- prefixes the `configure()` base URL (a URL starting with `http` is used as is) and sends `Content-Type: application/json` unless you pass your own;
+- prefixes the `configure()` base URL (a URL starting with `http` is used as is) and sends `Content-Type: application/json` unless you pass your own — **except for a `FormData` body**, which describes itself (multipart, with a boundary), so an upload can go through `authFetch` like anything else:
+
+  ```js
+  const form = new FormData()
+  form.append('file', file)
+  const saved = await authFetch('/factory/files/task_edit/brief', { method: 'POST', body: form })
+  ```
+
 - attaches `Authorization: Bearer <token>`;
 - attaches one header per registered multi-tenant level whose active scope has an `id` (see [Multi-tenancy](#multi-tenancy));
 - stores the token from an `X-New-Token` response header — `@xeplr/auth`'s sliding refresh, so most expiries never become a 401;

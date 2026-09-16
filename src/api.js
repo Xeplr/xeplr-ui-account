@@ -319,8 +319,12 @@ function absorbNewToken(res) {
 export async function authFetch(endpoint, options = {}) {
   const url = endpoint.startsWith('http') ? endpoint : `${getBaseUrl()}${endpoint}`;
 
+  // A FormData body sets its own Content-Type, boundary and all. Declaring
+  // JSON over it makes the server read the upload as an empty JSON body, so a
+  // multipart request keeps the browser's own header.
+  const isForm = typeof FormData !== 'undefined' && options.body instanceof FormData;
   const headers = {
-    'Content-Type': 'application/json',
+    ...(isForm ? {} : { 'Content-Type': 'application/json' }),
     ...options.headers,
   };
 
