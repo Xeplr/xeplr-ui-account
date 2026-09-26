@@ -38,6 +38,29 @@ export function toggleModuleRole({ module, action, roleId, assign }) {
   });
 }
 
+// ── Access states: enabled / disabled / hidden, per role, workspace or user ──
+//
+// Server support is being added alongside this UI. Until the auth service has
+// these routes, getModuleStates fails and the Access Matrix says so, while
+// Enabled / Hidden on roles keep working through module-role above.
+
+/** Stored states for one scope: [{ module, action, roleId?, state }]. scope: 'role' | 'workspace' | 'user'. */
+export function getModuleStates({ scope, scopeId }) {
+  var q = '?scope=' + encodeURIComponent(scope) + (scopeId ? '&scopeId=' + encodeURIComponent(scopeId) : '');
+  return authFetch('/auth/api/admin/module-states' + q);
+}
+
+/**
+ * Store or clear one state. state: 'enabled' | 'disabled' | 'hidden', or
+ * 'inherit' / null to remove the stored state. roleId only for scope 'role'.
+ */
+export function setModuleState({ scope, scopeId, module, action, roleId, state }) {
+  return authFetch('/auth/api/admin/module-state', {
+    method: 'POST',
+    body: JSON.stringify({ scope, scopeId, module, action, roleId, state }),
+  });
+}
+
 // ── Menu items: key, label, order, visibility (Super Admin) ──────────────
 
 /** Every menu item, hidden ones included: [{ name, label, shown, sortOrder, isHidden, isPublic }]. */

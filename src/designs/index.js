@@ -14,3 +14,4 @@ export { default as AccountMenu } from './AccountMenu.jsx';
 export { default as NavDrawer } from './NavDrawer.jsx';
 export { default as NavFloatingSettings } from './NavFloatingSettings.jsx';
 export { default as NotificationsBell } from './NotificationsBell.jsx';
+export { default as AdminTabs } from './AdminTabs.jsx';

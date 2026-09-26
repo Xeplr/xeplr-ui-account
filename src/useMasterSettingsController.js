@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getMasterItems, saveMasterItem, deleteMasterItem } from './masterApi.js';
+import { getMasterItems, saveMasterItem, deleteMasterItem, setApiScope } from './masterApi.js';
+import { useAccess } from './AccessContext.jsx';
 
 var TABS = [
   { key: 'roles', label: 'Roles', fields: [{ key: 'name', label: 'Name', required: true }] },
@@ -33,6 +34,12 @@ export function useMasterSettingsController() {
   var [saving, setSaving] = useState(false);
   var [editingItem, setEditingItem] = useState(null);
   var [editForm, setEditForm] = useState({});
+  var [scopeSaving, setScopeSaving] = useState({});
+
+  // Only Super Admin sees the "Super Admin only" switch at all; the server
+  // refuses the change for anyone else anyway.
+  var access = useAccess();
+  var isSuperAdmin = !!(access && access.hasRole && access.hasRole('Super Admin'));
 
   useEffect(function() {
     loadItems(activeTab);
@@ -153,6 +160,27 @@ export function useMasterSettingsController() {
     }
   }
 
+  // Move an API in or out of system scope. Effective at once on the server.
+  async function handleScopeToggle(item) {
+    var next = item.scope === 'system' ? 'company' : 'system';
+    setScopeSaving(function(prev) { var n = { ...prev }; n[item.id] = true; return n; });
+    setError('');
+    try {
+      await setApiScope(item.id, next);
+      setItems(function(prev) {
+        var n = { ...prev };
+        n.apis = (n.apis || []).map(function(x) { return x.id === item.id ? { ...x, scope: next } : x; });
+        return n;
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setScopeSaving(function(prev) { var n = { ...prev }; delete n[item.id]; return n; });
+    }
+  }
+
+  function isScopeSaving(id) { return !!scopeSaving[id]; }
+
   async function handleDelete(id) {
     setSaving(true);
     setError('');
@@ -194,6 +222,9 @@ export function useMasterSettingsController() {
     updateField,
     handleSave,
     handleDelete,
+    isSuperAdmin,
+    handleScopeToggle,
+    isScopeSaving,
     reload: function() { loadItems(activeTab); },
   };
 }

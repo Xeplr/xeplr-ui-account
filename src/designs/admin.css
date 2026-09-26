@@ -533,3 +533,115 @@
   color: var(--xeplr-danger);
   border: 1px solid var(--xeplr-danger-border);
 }
+
+/* ── Access Matrix: who it applies to, and three-way cells ─────────────── */
+
+.xeplr-admin-scope-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.xeplr-admin-scope-label {
+  font-size: 13px;
+  color: var(--xeplr-text-muted);
+}
+
+.xeplr-admin-scope-options {
+  display: inline-flex;
+  border: 1px solid var(--xeplr-input-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.xeplr-admin-scope-option {
+  padding: 6px 14px;
+  border: none;
+  border-right: 1px solid var(--xeplr-input-border);
+  background: var(--xeplr-input-bg);
+  color: var(--xeplr-text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.xeplr-admin-scope-option:last-child { border-right: none; }
+.xeplr-admin-scope-option:hover { background: var(--xeplr-bg-hover); }
+
+.xeplr-admin-scope-option-active,
+.xeplr-admin-scope-option-active:hover {
+  background: var(--xeplr-accent);
+  color: var(--xeplr-accent-text);
+}
+
+.xeplr-admin-scope-select,
+.xeplr-admin-state-select {
+  padding: 5px 8px;
+  border: 1px solid var(--xeplr-input-border);
+  border-radius: 6px;
+  background: var(--xeplr-input-bg);
+  color: var(--xeplr-input-text);
+  font-size: 13px;
+}
+
+.xeplr-admin-scope-select { min-width: 220px; }
+.xeplr-admin-state-select { min-width: 104px; cursor: pointer; }
+.xeplr-admin-state-select:disabled { opacity: 0.6; cursor: progress; }
+
+/* The state is readable at a glance, not only after opening the select. */
+.xeplr-admin-state-enabled  { color: var(--xeplr-success); border-color: var(--xeplr-success-border); }
+.xeplr-admin-state-disabled { color: var(--xeplr-warning); }
+.xeplr-admin-state-hidden   { color: var(--xeplr-text-muted); }
+.xeplr-admin-state-inherit  { color: var(--xeplr-text-muted); font-style: italic; }
+.xeplr-admin-state-partial  { color: var(--xeplr-info); }
+
+.xeplr-admin-alert-info {
+  border: 1px solid var(--xeplr-info-border);
+  background: var(--xeplr-info-bg);
+  color: var(--xeplr-info);
+}
+
+/* ── Admin page: add a role ─────────────────────────────────────────────── */
+
+.xeplr-admin-new-role {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+  max-width: 480px;
+}
+
+.xeplr-admin-new-role .xeplr-admin-search { flex: 1; }
+.xeplr-admin-new-role button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Master Settings: the "Super Admin only" switch (Super Admin viewers only) ── */
+
+.xeplr-admin-scope-col { text-align: center; white-space: nowrap; }
+.xeplr-admin-locked { opacity: 0.55; cursor: not-allowed; }
+
+/* ── Admin view: the pages, one click apart ─────────────────────────────── */
+
+.xeplr-admin-pages {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--xeplr-border-primary);
+}
+
+.xeplr-admin-page-link {
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: var(--xeplr-text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.xeplr-admin-page-link:hover { background: var(--xeplr-bg-hover); color: var(--xeplr-text-primary); }
+
+.xeplr-admin-page-link-active,
+.xeplr-admin-page-link-active:hover {
+  background: var(--xeplr-accent-muted);
+  color: var(--xeplr-accent);
+}

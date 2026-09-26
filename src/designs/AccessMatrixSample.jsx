@@ -1,7 +1,9 @@
 import './admin.css';
+import AdminTabs from './AdminTabs.jsx';
+import { STATES, OVERRIDE_STATES, STATE_LABELS } from '../accessStates.js';
 
-var ACTION_LABELS = { view: 'View Only', edit: 'Add / Edit', delete: 'Delete' };
-var ACTION_CLASSES = { view: 'xeplr-admin-action-view', edit: 'xeplr-admin-action-edit', delete: 'xeplr-admin-action-delete' };
+var ACTION_LABELS = { view: 'View Only', create: 'Create', edit: 'Add / Edit', delete: 'Delete' };
+var ACTION_CLASSES = { view: 'xeplr-admin-action-view', create: 'xeplr-admin-action-edit', edit: 'xeplr-admin-action-edit', delete: 'xeplr-admin-action-delete' };
 var UNCAT_TABS = [
   { key: 'apis', label: 'APIs' },
   { key: 'pages', label: 'Pages' },
@@ -12,11 +14,13 @@ var UNCAT_TABS = [
 export default function AccessMatrixSample({
   roles, modules, uncategorized, uncategorizedCount, uncatSubTab, setUncatSubTab,
   activeView, setActiveView, search, setSearch,
-  loading, error, handleModuleToggle, handleItemToggle,
-  isItemAssigned, isModuleSaving, isItemSaving, reload
+  loading, error, handleStateChange, handleItemToggle,
+  isItemAssigned, isModuleSaving, isItemSaving, reload,
+  appliesTo, setAppliesTo, scopeId, setScopeId, workspaces, users, statesSupported
 }) {
   return (
     <div className="xeplr-admin-container">
+      <AdminTabs />
       <div className="xeplr-admin-header">
         <h2>Access Matrix</h2>
         <button type="button" onClick={reload} className="xeplr-admin-btn-secondary">Refresh</button>
@@ -43,6 +47,15 @@ export default function AccessMatrixSample({
         </button>
       </div>
 
+      {activeView === 'modules' && renderScopeBar(appliesTo, setAppliesTo, scopeId, setScopeId, workspaces, users)}
+
+      {activeView === 'modules' && statesSupported === false && (
+        <div className="xeplr-admin-alert xeplr-admin-alert-info">
+          The server does not store access states yet. Enabled and Hidden on roles work today;
+          Disabled, and workspace or user overrides, arrive with the server update.
+        </div>
+      )}
+
       {/* Search */}
       <div className="xeplr-admin-toolbar">
         <input
@@ -60,7 +73,7 @@ export default function AccessMatrixSample({
       {loading ? (
         <div className="xeplr-admin-loading">Loading...</div>
       ) : activeView === 'modules' ? (
-        renderModulesView(roles, modules, handleModuleToggle, isModuleSaving)
+        renderModulesView(roles, modules, handleStateChange, isModuleSaving, appliesTo, scopeId)
       ) : (
         renderUncategorizedView(roles, uncategorized, uncatSubTab, setUncatSubTab, handleItemToggle, isItemAssigned, isItemSaving)
       )}
@@ -68,10 +81,61 @@ export default function AccessMatrixSample({
   );
 }
 
-function renderModulesView(roles, modules, handleModuleToggle, isModuleSaving) {
+var SCOPE_OPTIONS = [
+  { key: 'role', label: 'Roles' },
+  { key: 'workspace', label: 'Workspace' },
+  { key: 'user', label: 'User' },
+];
+
+function renderScopeBar(appliesTo, setAppliesTo, scopeId, setScopeId, workspaces, users) {
+  var list = appliesTo === 'workspace' ? (workspaces || []) : appliesTo === 'user' ? (users || []) : [];
+  return (
+    <div className="xeplr-admin-scope-bar">
+      <span className="xeplr-admin-scope-label">Applies to</span>
+      <div id="xeplr-admin-access-scope" role="radiogroup" aria-label="Applies to" className="xeplr-admin-scope-options">
+        {SCOPE_OPTIONS.map(function(opt) {
+          var on = appliesTo === opt.key;
+          return (
+            <button key={opt.key} type="button" role="radio" aria-checked={on}
+              className={'xeplr-admin-scope-option' + (on ? ' xeplr-admin-scope-option-active' : '')}
+              onClick={function() { setAppliesTo(opt.key); }}>
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+      {appliesTo !== 'role' && (
+        <select id="xeplr-admin-access-scope-target" className="xeplr-admin-scope-select"
+          value={scopeId} onChange={function(e) { setScopeId(e.target.value); }}>
+          <option value="">{appliesTo === 'workspace' ? 'Choose a workspace…' : 'Choose a user…'}</option>
+          {list.map(function(x) {
+            return <option key={x.id} value={x.id}>{x.name || x.email || x.id}</option>;
+          })}
+        </select>
+      )}
+    </div>
+  );
+}
+
+function stateSelect(value, options, onChange, disabled, label) {
+  return (
+    <select aria-label={label} value={value} disabled={disabled}
+      className={'xeplr-admin-state-select xeplr-admin-state-' + value}
+      onChange={function(e) { onChange(e.target.value); }}>
+      {value === 'partial' && <option value="partial" disabled>{STATE_LABELS.partial}</option>}
+      {options.map(function(s) { return <option key={s} value={s}>{STATE_LABELS[s]}</option>; })}
+    </select>
+  );
+}
+
+function renderModulesView(roles, modules, handleStateChange, isModuleSaving, appliesTo, scopeId) {
   if (modules.length === 0) {
     return <div className="xeplr-admin-empty-box">No modules found. Items need a <code>module:action</code> group value to appear here.</div>;
   }
+  if (appliesTo !== 'role' && !scopeId) {
+    return <div className="xeplr-admin-empty-box">Choose a {appliesTo} above to see and change its overrides.</div>;
+  }
+  var byRole = appliesTo === 'role';
 
   return (
     <div className="xeplr-admin-matrix-wrapper">
@@ -80,9 +144,9 @@ function renderModulesView(roles, modules, handleModuleToggle, isModuleSaving) {
           <tr>
             <th className="xeplr-admin-sticky-col xeplr-admin-module-col">Module</th>
             <th className="xeplr-admin-action-col">Action</th>
-            {roles.map(function(role) {
+            {byRole ? roles.map(function(role) {
               return <th key={role.id} className="xeplr-admin-role-header">{role.name}</th>;
-            })}
+            }) : <th className="xeplr-admin-role-header">State</th>}
           </tr>
         </thead>
         <tbody>
@@ -100,26 +164,23 @@ function renderModulesView(roles, modules, handleModuleToggle, isModuleSaving) {
                   <td className={'xeplr-admin-action-cell ' + actionClass}>
                     {actionLabel}
                   </td>
-                  {roles.map(function(role) {
-                    var state = actionEntry.getRoleState(role.id);
-                    var isSaving = isModuleSaving(mod.name, actionEntry.action, role.id);
+                  {byRole ? roles.map(function(role) {
                     return (
                       <td key={role.id} className="xeplr-admin-cell">
-                        <label className="xeplr-admin-toggle">
-                          <input
-                            type="checkbox"
-                            checked={state === 'all'}
-                            ref={function(el) {
-                              if (el) el.indeterminate = state === 'partial';
-                            }}
-                            disabled={isSaving}
-                            onChange={function() { handleModuleToggle(mod.name, actionEntry.action, role.id, state); }}
-                          />
-                          <span className={'xeplr-admin-checkmark' + (state === 'partial' ? ' xeplr-admin-partial' : '') + (isSaving ? ' xeplr-admin-saving' : '')} />
-                        </label>
+                        {stateSelect(actionEntry.getCellState(role.id), STATES,
+                          function(next) { handleStateChange(mod.name, actionEntry.action, role.id, next); },
+                          isModuleSaving(mod.name, actionEntry.action, role.id),
+                          mod.name + ' ' + actionLabel + ' for ' + role.name)}
                       </td>
                     );
-                  })}
+                  }) : (
+                    <td className="xeplr-admin-cell">
+                      {stateSelect(actionEntry.getOverrideState(), OVERRIDE_STATES,
+                        function(next) { handleStateChange(mod.name, actionEntry.action, null, next); },
+                        isModuleSaving(mod.name, actionEntry.action, null),
+                        mod.name + ' ' + actionLabel)}
+                    </td>
+                  )}
                 </tr>
               );
             });

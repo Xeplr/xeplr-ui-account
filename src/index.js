@@ -56,3 +56,4 @@ export { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, Activat
 
 // One-call auth routing — mount every auth page with no boilerplate; override just what you want
 export { authRoutes, authPath } from './authRoutes.jsx';
+export { ADMIN_PAGES } from './adminPaths.js';

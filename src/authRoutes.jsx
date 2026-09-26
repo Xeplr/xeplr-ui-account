@@ -1,3 +1,4 @@
+import { ADMIN_PAGES } from './adminPaths.js';
 import { isValidElement } from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute.jsx';
@@ -23,10 +24,12 @@ var MANIFEST = [
   { key: 'notActivated',   path: '/auth/not-activated',         Page: NotActivatedPage,   group: 'public' },
   { key: 'profile',        path: '/auth/profile',               Page: ProfilePage,        group: 'account' },
   { key: 'changePassword', path: '/auth/change-password',       Page: ChangePasswordPage, group: 'account' },
-  { key: 'userRoles',      path: '/auth/admin/user-roles',      Page: UserRolesPage,      group: 'admin' },
-  { key: 'accessMatrix',   path: '/auth/admin/access-matrix',   Page: AccessMatrixPage,   group: 'admin' },
-  { key: 'masterSettings', path: '/auth/admin/master-settings', Page: MasterSettingsPage, group: 'admin' }
+  { key: 'userRoles',      path: adminPath('userRoles'),      Page: UserRolesPage,      group: 'admin' },
+  { key: 'accessMatrix',   path: adminPath('accessMatrix'),   Page: AccessMatrixPage,   group: 'admin' },
+  { key: 'masterSettings', path: adminPath('masterSettings'), Page: MasterSettingsPage, group: 'admin' }
 ];
+
+function adminPath(key) { return ADMIN_PAGES.find(function (p) { return p.key === key; }).path; }
 
 var _pathByKey = {};
 MANIFEST.forEach(function (e) { _pathByKey[e.key] = e.path; });
@@ -51,7 +54,9 @@ function resolveElement(entry, ov) {
   if (!ov) return <Page />;                          // framework default
   if (isValidElement(ov)) return ov;                 // bare element  → full replace
   if (ov.element) return ov.element;                 // { element }   → full replace
-  if (ov.design) return <Page design={ov.design} />; // { design }    → re-skin (keeps controller)
+  if (ov.design || ov.props) {                       // { design, props } → re-skin and/or feed the controller
+    return <Page design={ov.design} {...(ov.props || {})} />;
+  }
   return <Page />;                                   // e.g. only { path } supplied
 }
 
@@ -67,6 +72,8 @@ function resolveElement(entry, ov) {
  * @param {object} [overrides]  map of manifest key → how to render it:
  *   - { design: MyDesign }   re-skin: framework controller + validation, your look
  *                            (design receives the controller's props)
+ *   - { props: {...} }       pass props to the page's controller, e.g.
+ *                            accessMatrix: { props: { loadWorkspaces } }
  *   - { element: <X/> }      full replace: your element, framework logic ignored
  *   - a React element        shorthand for { element }
  *   - false | null           drop this route (app doesn't want it)

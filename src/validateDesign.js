@@ -99,12 +99,14 @@ export var PROFILE_RULES = [
 
 export var USER_ROLES_MATRIX_RULES = [
   { id: 'xeplr-admin-user-search', label: 'User search input' },
-  { role: 'grid', label: 'Matrix grid table' }
+  { role: 'grid', label: 'Matrix grid table' },
+  { id: 'xeplr-admin-new-role', label: 'New role name input' }
 ];
 
 export var ACCESS_MATRIX_RULES = [
   { id: 'xeplr-admin-access-search', label: 'Access search input' },
-  { role: 'tablist', label: 'Tab list for Modules/Uncategorized' }
+  { role: 'tablist', label: 'Tab list for Modules/Uncategorized' },
+  { id: 'xeplr-admin-access-scope', label: 'Applies to: Roles / Workspace / User (role="radiogroup")' }
 ];
 
 export var MASTER_SETTINGS_RULES = [

@@ -1,10 +1,13 @@
 import './admin.css';
+import AdminTabs from './AdminTabs.jsx';
 
 export default function UserRolesMatrixSample({
-  users, roles, search, setSearch, loading, error, saving, handleToggle, isAssigned, reload
+  users, roles, search, setSearch, loading, error, saving, handleToggle, isAssigned, reload,
+  newRoleName, setNewRoleName, creatingRole, createRole
 }) {
   return (
     <div className="xeplr-admin-container">
+      <AdminTabs />
       <div className="xeplr-admin-header">
         <h2>User Roles</h2>
         <div className="xeplr-admin-toolbar">
@@ -19,6 +22,21 @@ export default function UserRolesMatrixSample({
           <button type="button" onClick={reload} className="xeplr-admin-btn-secondary">Refresh</button>
         </div>
       </div>
+
+      <form className="xeplr-admin-new-role"
+        onSubmit={function(e) { e.preventDefault(); createRole(); }}>
+        <input
+          id="xeplr-admin-new-role"
+          type="text"
+          placeholder="New role, e.g. Workspace Admin"
+          value={newRoleName}
+          onChange={function(e) { setNewRoleName(e.target.value); }}
+          className="xeplr-admin-search"
+        />
+        <button type="submit" className="xeplr-admin-btn-primary" disabled={creatingRole || !newRoleName.trim()}>
+          {creatingRole ? 'Adding…' : 'Add role'}
+        </button>
+      </form>
 
       {error && <div className="xeplr-admin-alert xeplr-admin-alert-error">{error}</div>}
 

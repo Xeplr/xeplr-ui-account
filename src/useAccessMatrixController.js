@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getRoles, getAccessItems, toggleModuleRole, toggleAccessRole } from './adminApi.js';
+import { getRoles, getAccessItems, getUsers, toggleModuleRole, toggleAccessRole, getModuleStates, setModuleState } from './adminApi.js';
+import { stateKey, indexStates, roleCellState, overrideCellState, roleChangePlan, needsStoredStates } from './accessStates.js';
 
 var GROUP_FIELDS = {
   apis: 'apiGroup',
@@ -10,7 +11,7 @@ var GROUP_FIELDS = {
 
 var TYPES = ['apis', 'pages', 'elements', 'menus'];
 
-var ACTION_ORDER = { view: 0, edit: 1, delete: 2 };
+var ACTION_ORDER = { view: 0, create: 1, edit: 2, delete: 3 };
 
 function parseModuleGroup(groupValue) {
   if (!groupValue) return null;
@@ -19,7 +20,14 @@ function parseModuleGroup(groupValue) {
   return { module: parts[0], action: parts[1] };
 }
 
-export function useAccessMatrixController() {
+/**
+ * @param props.workspaces      [{ id, name }] the host app's workspaces, for the
+ *                              "Applies to: Workspace" picker. Workspaces live in
+ *                              the product (BI), not in the auth service.
+ * @param props.loadWorkspaces  async () => [{ id, name }], instead of `workspaces`
+ */
+export function useAccessMatrixController(props) {
+  props = props || {};
   var [roles, setRoles] = useState([]);
   var [rawItems, setRawItems] = useState({ apis: [], pages: [], elements: [], menus: [] });
   var [activeView, setActiveView] = useState('modules');
@@ -28,6 +36,40 @@ export function useAccessMatrixController() {
   var [loading, setLoading] = useState(true);
   var [error, setError] = useState('');
   var [saving, setSaving] = useState({});
+
+  // ── who the matrix applies to: roles (the defaults), a workspace, a user ──
+  var [appliesTo, setAppliesToState] = useState('role');
+  var [scopeId, setScopeIdState] = useState('');
+  var [workspaces, setWorkspaces] = useState(props.workspaces || []);
+  var [users, setUsers] = useState([]);
+  // Stored states for the current scope: { 'reports:view[:roleId]': state }.
+  var [storedStates, setStoredStates] = useState({});
+  // null = not known yet; false = the server has no access-state routes yet.
+  var [statesSupported, setStatesSupported] = useState(null);
+
+  useEffect(function() {
+    if (props.workspaces) { setWorkspaces(props.workspaces); return; }
+    if (typeof props.loadWorkspaces !== 'function') return;
+    var alive = true;
+    Promise.resolve(props.loadWorkspaces()).then(function(list) {
+      if (alive) setWorkspaces(list || []);
+    }).catch(function(err) { if (alive) setError(err.message); });
+    return function() { alive = false; };
+  }, [props.workspaces, props.loadWorkspaces]);
+
+  async function loadStates(scope, id) {
+    if (scope !== 'role' && !id) { setStoredStates({}); return; }
+    try {
+      var rows = await getModuleStates({ scope: scope, scopeId: scope === 'role' ? null : id });
+      setStoredStates(indexStates(rows));
+      setStatesSupported(true);
+    } catch (err) {
+      // No server support yet: roles still work through their mappings, and
+      // the design shows a notice rather than pretending overrides exist.
+      setStoredStates({});
+      setStatesSupported(false);
+    }
+  }
 
   useEffect(function() {
     loadData();
@@ -40,6 +82,7 @@ export function useAccessMatrixController() {
       var [rolesData, itemsData] = await Promise.all([getRoles(), getAccessItems()]);
       setRoles(rolesData.filter(function(r) { return r.name !== 'Super Admin'; }));
       setRawItems(itemsData);
+      await loadStates(appliesTo, scopeId);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -93,21 +136,30 @@ export function useAccessMatrixController() {
           action: action,
           itemCount: data.items.length,
           items: data.items,
-          getRoleState: function(roleId) {
-            var info = data.roleIds[roleId];
-            if (!info || info.total === 0) return 'none';
-            if (info.assigned === info.total) return 'all';
-            if (info.assigned > 0) return 'partial';
-            return 'none';
+          getRoleState: getRoleState,
+          // Three-way cell for a role: enabled / disabled / hidden (or partial).
+          getCellState: function(roleId) {
+            return roleCellState(getRoleState(roleId), storedStates[stateKey(name, action, roleId)]);
+          },
+          // Three-way cell plus inherit, for the chosen workspace or user.
+          getOverrideState: function() {
+            return overrideCellState(storedStates[stateKey(name, action)]);
           }
         };
+        function getRoleState(roleId) {
+          var info = data.roleIds[roleId];
+          if (!info || info.total === 0) return 'none';
+          if (info.assigned === info.total) return 'all';
+          if (info.assigned > 0) return 'partial';
+          return 'none';
+        }
       });
 
       return { name: name, actions: actions };
     });
 
     return result;
-  }, [rawItems, roles, search]);
+  }, [rawItems, roles, search, storedStates]);
 
   // ─── Uncategorized view: items without module:action group ───
   var uncategorized = useMemo(function() {
@@ -135,44 +187,110 @@ export function useAccessMatrixController() {
     return count;
   }, [uncategorized]);
 
-  // ─── Module toggle (bulk) ───
-  var handleModuleToggle = useCallback(async function(moduleName, action, roleId, currentState) {
-    var assign = currentState !== 'all';
-    var key = 'module:' + moduleName + ':' + action + ':' + roleId;
-    setSaving(function(prev) { var next = { ...prev }; next[key] = true; return next; });
+  // Grant or revoke a module/action for a role, and mirror it locally.
+  async function applyGrant(moduleName, action, roleId, assign) {
+    await toggleModuleRole({ module: moduleName, action: action, roleId: roleId, assign: assign });
+    setRawItems(function(prev) {
+      var updated = {};
+      TYPES.forEach(function(type) {
+        var groupField = GROUP_FIELDS[type];
+        updated[type] = prev[type].map(function(item) {
+          var parsed = parseModuleGroup(item[groupField]);
+          if (!parsed || parsed.module !== moduleName || parsed.action !== action) return item;
 
-    try {
-      await toggleModuleRole({ module: moduleName, action: action, roleId: roleId, assign: assign });
-
-      // Optimistic: update local state
-      setRawItems(function(prev) {
-        var updated = {};
-        TYPES.forEach(function(type) {
-          var groupField = GROUP_FIELDS[type];
-          updated[type] = prev[type].map(function(item) {
-            var parsed = parseModuleGroup(item[groupField]);
-            if (!parsed || parsed.module !== moduleName || parsed.action !== action) return item;
-
-            var newRoles;
-            if (assign) {
-              var hasRole = item.roles && item.roles.some(function(r) { return r.id === roleId; });
-              if (hasRole) return item;
-              var role = roles.find(function(r) { return r.id === roleId; });
-              newRoles = (item.roles || []).concat(role ? [role] : []);
-            } else {
-              newRoles = (item.roles || []).filter(function(r) { return r.id !== roleId; });
-            }
-            return { ...item, roles: newRoles };
-          });
+          var newRoles;
+          if (assign) {
+            var hasRole = item.roles && item.roles.some(function(r) { return r.id === roleId; });
+            if (hasRole) return item;
+            var role = roles.find(function(r) { return r.id === roleId; });
+            newRoles = (item.roles || []).concat(role ? [role] : []);
+          } else {
+            newRoles = (item.roles || []).filter(function(r) { return r.id !== roleId; });
+          }
+          return { ...item, roles: newRoles };
         });
-        return updated;
       });
+      return updated;
+    });
+  }
+
+  function markSaving(key, on) {
+    setSaving(function(prev) { var next = { ...prev }; if (on) next[key] = true; else delete next[key]; return next; });
+  }
+
+  // ─── Module toggle (bulk) — kept for designs written before three-way cells ───
+  var handleModuleToggle = useCallback(async function(moduleName, action, roleId, currentState) {
+    var key = 'module:' + moduleName + ':' + action + ':' + roleId;
+    markSaving(key, true);
+    try {
+      await applyGrant(moduleName, action, roleId, currentState !== 'all');
     } catch (err) {
       setError(err.message);
     } finally {
-      setSaving(function(prev) { var next = { ...prev }; delete next[key]; return next; });
+      markSaving(key, false);
     }
   }, [roles]);
+
+  // ─── Three-way cell change: enabled / disabled / hidden (/ inherit) ───
+  //
+  // roleId is set for the Roles view and null for a workspace or user.
+  var handleStateChange = useCallback(async function(moduleName, action, roleId, nextState) {
+    if (needsStoredStates(appliesTo, nextState) && statesSupported === false) {
+      setError('The server does not store access states yet, so "' + nextState + '" cannot be saved' +
+        (appliesTo === 'role' ? ' for a role.' : ' for a ' + appliesTo + '.') +
+        ' Enabled and Hidden on roles work today.');
+      return;
+    }
+    var key = 'module:' + moduleName + ':' + action + ':' + (roleId || appliesTo);
+    markSaving(key, true);
+    setError('');
+    try {
+      if (appliesTo === 'role') {
+        var plan = roleChangePlan(nextState);
+        for (var i = 0; i < plan.length; i++) {
+          var step = plan[i];
+          if (step.call === 'grant') await applyGrant(moduleName, action, roleId, true);
+          else if (step.call === 'revoke') await applyGrant(moduleName, action, roleId, false);
+          else if (statesSupported) {
+            await setModuleState({ scope: 'role', scopeId: roleId, module: moduleName, action: action, roleId: roleId,
+              state: step.call === 'setState' ? step.state : null });
+          }
+        }
+        rememberState(stateKey(moduleName, action, roleId), nextState === 'disabled' ? 'disabled' : null);
+      } else {
+        await setModuleState({ scope: appliesTo, scopeId: scopeId, module: moduleName, action: action,
+          state: nextState === 'inherit' ? null : nextState });
+        rememberState(stateKey(moduleName, action), nextState === 'inherit' ? null : nextState);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      markSaving(key, false);
+    }
+  }, [roles, appliesTo, scopeId, statesSupported]);
+
+  function rememberState(k, state) {
+    setStoredStates(function(prev) {
+      var next = { ...prev };
+      if (state) next[k] = state; else delete next[k];
+      return next;
+    });
+  }
+
+  var setAppliesTo = useCallback(function(scope) {
+    setAppliesToState(scope);
+    setScopeIdState('');
+    setError('');
+    if (scope === 'user' && users.length === 0) {
+      getUsers().then(function(list) { setUsers(list || []); }).catch(function(err) { setError(err.message); });
+    }
+    loadStates(scope, '');
+  }, [users]);
+
+  var setScopeId = useCallback(function(id) {
+    setScopeIdState(id);
+    loadStates(appliesTo, id);
+  }, [appliesTo]);
 
   // ─── Single item toggle (for uncategorized) ───
   var handleItemToggle = useCallback(async function(type, itemId, roleId, currentlyAssigned) {
@@ -209,7 +327,7 @@ export function useAccessMatrixController() {
   }
 
   function isModuleSaving(moduleName, action, roleId) {
-    return !!saving['module:' + moduleName + ':' + action + ':' + roleId];
+    return !!saving['module:' + moduleName + ':' + action + ':' + (roleId || appliesTo)];
   }
 
   function isItemSaving(type, itemId, roleId) {
@@ -235,7 +353,15 @@ export function useAccessMatrixController() {
     loading,
     error,
     handleModuleToggle,
+    handleStateChange,
     handleItemToggle,
+    appliesTo,
+    setAppliesTo,
+    scopeId,
+    setScopeId,
+    workspaces,
+    users,
+    statesSupported,
     isItemAssigned,
     isModuleSaving,
     isItemSaving,

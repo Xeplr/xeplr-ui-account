@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getUsers, getRoles, toggleUserRole } from './adminApi.js';
+import { saveMasterItem } from './masterApi.js';
 
 export function useUserRolesController() {
   var [users, setUsers] = useState([]);
@@ -8,6 +9,8 @@ export function useUserRolesController() {
   var [loading, setLoading] = useState(true);
   var [error, setError] = useState('');
   var [saving, setSaving] = useState({});
+  var [newRoleName, setNewRoleName] = useState('');
+  var [creatingRole, setCreatingRole] = useState(false);
 
   useEffect(function() {
     loadData();
@@ -62,6 +65,25 @@ export function useUserRolesController() {
     }
   }, [roles]);
 
+  // A new role becomes a column here and in the Access Matrix: both read the
+  // role list from the server. Creating one is Super Admin only; anyone else
+  // gets the server's refusal as the error.
+  var createRole = useCallback(async function() {
+    var name = newRoleName.trim();
+    if (!name) return;
+    setCreatingRole(true);
+    setError('');
+    try {
+      var made = await saveMasterItem('roles', { name: name });
+      setRoles(function(prev) { return prev.concat([{ id: made.id, name: name }]); });
+      setNewRoleName('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCreatingRole(false);
+    }
+  }, [newRoleName]);
+
   function isAssigned(user, roleId) {
     return user.roles && user.roles.some(function(r) { return r.id === roleId; });
   }
@@ -76,6 +98,10 @@ export function useUserRolesController() {
     saving,
     handleToggle,
     isAssigned,
+    newRoleName,
+    setNewRoleName,
+    creatingRole,
+    createRole,
     reload: loadData,
   };
 }

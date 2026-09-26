@@ -1,12 +1,17 @@
 import './admin.css';
+import AdminTabs from './AdminTabs.jsx';
 
 export default function MasterSettingsSample({
   tabs, activeTab, setActiveTab, currentTab, items, search, setSearch,
   loading, error, saving, editingItem, editForm, groupNames,
-  startAdd, startEdit, cancelEdit, updateField, handleSave, handleDelete, reload
+  startAdd, startEdit, cancelEdit, updateField, handleSave, handleDelete, reload,
+  isSuperAdmin, handleScopeToggle, isScopeSaving
 }) {
+  // The "Super Admin only" column: APIs tab, Super Admin viewers only.
+  var showScope = activeTab === 'apis' && isSuperAdmin;
   return (
     <div className="xeplr-admin-container">
+      <AdminTabs />
       <div className="xeplr-admin-header">
         <h2>Master Settings</h2>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -58,6 +63,7 @@ export default function MasterSettingsSample({
                 {currentTab.fields.map(function(field) {
                   return <th key={field.key} className={field.key === 'name' ? 'xeplr-admin-sticky-col' : ''}>{field.label}</th>;
                 })}
+                {showScope && <th className="xeplr-admin-scope-col">Super Admin only</th>}
                 <th className="xeplr-admin-actions-col">Actions</th>
               </tr>
             </thead>
@@ -86,7 +92,7 @@ export default function MasterSettingsSample({
               )}
 
               {items.length === 0 && editingItem !== '__new__' ? (
-                <tr><td colSpan={currentTab.fields.length + 1} className="xeplr-admin-empty">No {currentTab.label.toLowerCase()} found</td></tr>
+                <tr><td colSpan={currentTab.fields.length + (showScope ? 2 : 1)} className="xeplr-admin-empty">No {currentTab.label.toLowerCase()} found</td></tr>
               ) : (
                 items.map(function(item) {
                   var isEditing = editingItem === item.id;
@@ -107,6 +113,11 @@ export default function MasterSettingsSample({
                           </td>
                         );
                       })}
+                      {showScope && (
+                        <td className="xeplr-admin-scope-col">
+                          {renderScopeSwitch(item, handleScopeToggle, isScopeSaving(item.id))}
+                        </td>
+                      )}
                       <td className="xeplr-admin-actions-col">
                         {isEditing ? (
                           <div className="xeplr-admin-action-btns">
@@ -119,10 +130,14 @@ export default function MasterSettingsSample({
                           </div>
                         ) : (
                           <div className="xeplr-admin-action-btns">
-                            <button onClick={function() { startEdit(item); }} className="xeplr-admin-btn-edit" title="Edit" disabled={editingItem !== null}>
+                            <button onClick={function() { startEdit(item); }} className="xeplr-admin-btn-edit"
+                              title={item.scope === 'system' ? 'A Super Admin only API cannot be renamed' : 'Edit'}
+                              disabled={editingItem !== null || item.scope === 'system'}>
                               {'\u270E'}
                             </button>
-                            <button onClick={function() { if (confirm('Delete this item?')) handleDelete(item.id); }} className="xeplr-admin-btn-delete" title="Delete" disabled={saving || editingItem !== null}>
+                            <button onClick={function() { if (confirm('Delete this item?')) handleDelete(item.id); }} className="xeplr-admin-btn-delete"
+                              title={item.scope === 'system' ? 'A Super Admin only API cannot be deleted' : 'Delete'}
+                              disabled={saving || editingItem !== null || item.scope === 'system'}>
                               {'\u2715'}
                             </button>
                           </div>
@@ -203,4 +218,18 @@ function renderValue(field, value) {
   }
 
   return <span className={field.key === 'name' ? 'xeplr-admin-item-name' : ''}>{value || '\u2014'}</span>;
+}
+
+function renderScopeSwitch(item, onToggle, busy) {
+  var on = item.scope === 'system';
+  var locked = !!item.scopeLocked;
+  return (
+    <label className="xeplr-admin-toggle"
+      title={locked ? 'Pinned as Super Admin only by a migration' : on ? 'Only Super Admin can use this API' : 'Make this API Super Admin only'}>
+      <input type="checkbox" checked={on} disabled={busy || locked}
+        aria-label={'Super Admin only: ' + item.name}
+        onChange={function() { onToggle(item); }} />
+      <span className={'xeplr-admin-checkmark' + (busy ? ' xeplr-admin-saving' : '') + (locked ? ' xeplr-admin-locked' : '')} />
+    </label>
+  );
 }

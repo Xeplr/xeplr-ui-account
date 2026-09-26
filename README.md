@@ -54,7 +54,7 @@ createRoot(document.getElementById('root')).render(
 
 ```css
 .app { min-height: 100vh; background: var(--xeplr-bg-primary); color: var(--xeplr-text-primary); }
-.app-main { padding-left: 60px; }            /* room for the collapsed rail */
+.app-main { padding-left: 48px; }            /* room for the collapsed rail */
 ```
 
 Link to auth pages with `authPath(key)` rather than a literal URL: `<Link to={authPath('profile')}>`.
@@ -63,7 +63,7 @@ Link to auth pages with `authPath(key)` rather than a literal URL: `<Link to={au
 
 - **`<ThemeProvider>` is required.** `theme.css` defines every `--xeplr-*` variable only inside the `.xeplr-theme-dark`, `-light`, `-medium` and `-bright` classes — there is no `:root` fallback. Without a theme class above them, every screen renders unstyled and nothing reports an error. `ThemeProvider` renders that class on a wrapper `<div>` (you may instead put the class on a container yourself).
 - **Set the page background on a container inside the theme wrapper, not on `body`.** `body` is outside the wrapper `<div>`, so `var(--xeplr-bg-primary)` there resolves to nothing.
-- **Reserve room for the rail.** The drawer is `position: fixed` at the top-left, full height, `z-index: 500`, 60px wide when collapsed. It never pushes content, so the app must leave that space (e.g. `padding-left: 60px`). Expanded, it overlays the page. A full-screen modal must stack above 500 or the rail shows through it.
+- **Reserve room for the rail.** The drawer is `position: fixed` at the top-left, full height, `z-index: 500`, 48px wide when collapsed (compact, like VS Code's activity bar). It never pushes content, so the app must leave that space (e.g. `padding-left: 48px`). Expanded, it overlays the page. A full-screen modal must stack above 500 or the rail shows through it.
 - **The rail only renders when the person may see at least one drawer item.** If none of `drawerItems` survives the access filter, `NavPage` renders the top bar instead (in normal flow, not fixed). If that can happen in your app, decide the padding with `labelMenuItems(drawerItems, access).length > 0`.
 
 ### Themes
@@ -103,7 +103,8 @@ authRoutes({
   register: false,                                     // drop the route
   profile: <MyProfile />,                              // full replace (same as { element: <MyProfile /> })
   userRoles: { element: <ProtectedRoute roles={['Super Admin']}><UserRolesPage /></ProtectedRoute> },
-  forgotPassword: { path: '/forgot', design: MyForgot } // mount at another path
+  forgotPassword: { path: '/forgot', design: MyForgot }, // mount at another path
+  accessMatrix: { props: { loadWorkspaces } }          // props for the page's controller
 }, { layout: <Shell />, loginPath: '/auth/login', raw: true })
 ```
 
@@ -201,8 +202,8 @@ Every reply must be JSON: an empty body (a `204`, say) throws too. Each failure 
 ```jsx
 const navigate = useNavigate()
 const drawerItems = [
-  { key: 'Tasks',   icon: <TaskIcon />,   clickHandler: () => navigate('/tasks') },
-  { key: 'Reports', icon: <ReportIcon />, clickHandler: () => navigate('/reports'), group: 'Insights', badge: 3 },
+  { key: 'Tasks',   icon: <TaskIcon />,   path: '/tasks',   clickHandler: () => navigate('/tasks') },
+  { key: 'Reports', icon: <ReportIcon />, path: '/reports', clickHandler: () => navigate('/reports'), group: 'Insights', badge: 3 },
 ]
 const settingsOverrides = [{ key: 'Admin', path: '/admin' }]
 ```
@@ -210,6 +211,8 @@ const settingsOverrides = [{ key: 'Admin', path: '/admin' }]
 - **An unknown key is dropped silently.** A key that is not in `access.menus` — not seeded, not granted to this role, hidden, or misspelled — simply does not render, with no warning. Seed the menu row in `@xeplr/auth` and grant it before looking anywhere else.
 - **Give every drawer item an `icon`.** The collapsed rail shows icons only; an item without one is an empty button there.
 - `group` is a section header, written in code and shown as is. Ungrouped items come first.
+- `path` marks the item as **the current page** (accent icon on a tinted tile, `aria-current="page"`) when the URL is that path or under it — `/tasks` stays marked on `/tasks/12`. `active: true|false` overrides it. An item with neither is never marked. Give every item one: a rail that does not say where you are makes every click feel unconfirmed.
+- Every rail control (links, logo, bell, settings) is a 36px tile with a hover, a visible press (`:active` shrink), and a keyboard-only focus ring; settings stays pressed while its menu is open.
 - `badge` (number or short string) shows as a pill when expanded and a dot on the icon when collapsed; `0`, `''` and `null` show nothing.
 
 `labelMenuItems(catalog, access)` is the pure function behind this — it returns the items the person may see, each with `key` and `label`, in the server's order.
@@ -240,7 +243,7 @@ Exactly one of two things renders: with at least one visible drawer item, the **
 
 | prop | applies to | meaning |
 |---|---|---|
-| `drawerItems` | drawer | `[{ key, icon, clickHandler, group?, badge? }]` — a non-empty visible list turns the drawer on |
+| `drawerItems` | drawer | `[{ key, icon, clickHandler, path?, active?, group?, badge? }]` — a non-empty visible list turns the drawer on |
 | `settingsOverrides` | both | `[{ key, path }]`, shown above the built-in items in the settings menu |
 | `notifications` | both | `{ count, onClick }` — the bell shows only when this is given **and** `access.menus` contains `Notifications`; a count above 9 shows `9+` |
 | `logo` | both | image URL: the top bar's logo, the collapsed rail's toggle |
@@ -297,15 +300,21 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 | `useActivateController` | — | `token, error, success, loading` |
 | `useChangePasswordController` | `onSuccess` | `currentPassword, setCurrentPassword, newPassword, setNewPassword, confirmPassword, setConfirmPassword, error, success, loading, handleSubmit` |
 | `useProfileController` | `onSuccess` | `form, error, success, loading, fetching, handleChange, handleSubmit` |
-| `useUserRolesController` | — | `users, roles, search, setSearch, loading, error, saving, handleToggle, isAssigned, reload` |
-| `useAccessMatrixController` | — | `roles, modules, uncategorized, uncategorizedCount, uncatSubTab, setUncatSubTab, activeView, setActiveView, search, setSearch, loading, error, handleModuleToggle, handleItemToggle, isItemAssigned, isModuleSaving, isItemSaving, reload` |
-| `useMasterSettingsController` | — | `tabs, activeTab, setActiveTab, currentTab, items, groupNames, search, setSearch, loading, error, saving, editingItem, editForm, startAdd, startEdit, cancelEdit, updateField, handleSave, handleDelete, reload` |
+| `useUserRolesController` | — | `users, roles, search, setSearch, loading, error, saving, handleToggle, isAssigned, reload, newRoleName, setNewRoleName, creatingRole, createRole` |
+| `useAccessMatrixController` | `workspaces` or `loadWorkspaces` | `roles, modules, uncategorized, uncategorizedCount, uncatSubTab, setUncatSubTab, activeView, setActiveView, search, setSearch, loading, error, handleStateChange, handleModuleToggle, handleItemToggle, isItemAssigned, isModuleSaving, isItemSaving, reload, appliesTo, setAppliesTo, scopeId, setScopeId, workspaces, users, statesSupported` |
+| `useMasterSettingsController` | — | `tabs, activeTab, setActiveTab, currentTab, items, groupNames, search, setSearch, loading, error, saving, editingItem, editForm, startAdd, startEdit, cancelEdit, updateField, handleSave, handleDelete, reload, isSuperAdmin, handleScopeToggle, isScopeSaving` |
 | `useNavController` | `drawerItems, settingsOverrides, notifications` | `user, accountItems, notifications, logout, accountOpen, toggleAccount, closeAccount, accountRef, drawerOpen, toggleDrawer, closeDrawer, drawerItems, drawerWidth, drawerResizing, startDrawerResize, resetDrawerWidth, nudgeDrawerWidth, drawerWidthBounds` |
 
 - Login stores the tokens and calls `AccessProvider`'s `onLogin` when a provider is present. A login refused with "Please wait, someone will activate you." navigates to `notActivatedPath` (default `/auth/not-activated`). Supplying `onSuccess` replaces the default navigation entirely.
 - Register, profile: `handleChange` reads `e.target.name`, so inputs need `name="email"` etc. `form` is `{ name, email, phoneNumber, password }` / `{ name, email, phoneNumber }`.
 - Reset and activate read `?token=` (activate also passes `?workflowKey=` back to the server) and activate runs on mount.
 - The access matrix groups items whose group is `module:action` (e.g. `account:view`) under Modules; the rest are Uncategorized. The Super Admin role is left out of its columns.
+- **Super Admin only APIs.** On Master Settings → APIs, a Super Admin sees a "Super Admin only" switch per API (`handleScopeToggle`). Nobody else sees the column. An API pinned by a migration shows ticked and cannot be switched off, and a Super Admin only API cannot be renamed or deleted there. `isSuperAdmin` comes from `AccessProvider`'s `hasRole`.
+- **Admin view tabs.** User Roles, Access Matrix and Master Settings each show a tab bar across the top (`AdminTabs`), so the three are one click apart. The pages and their paths are one list, `ADMIN_PAGES` (`adminPaths.js`), which the routes use too.
+- **Adding a role.** The User Roles page has a New role field (`createRole`). The role appears as a column there and in the Access Matrix straight away. The server allows it for Super Admin only; anyone else sees its refusal.
+- **Access states.** Each Modules cell is three-way, not a checkbox: **Enabled** (shown and usable), **Disabled** (shown, greyed out, not usable) or **Hidden** (not shown). A role only partly granted shows **Mixed**. `handleStateChange(module, action, roleId, state)` saves a change; `handleModuleToggle` still works for designs written before.
+- **Applies to: Roles, Workspace or User.** Roles are the defaults. A workspace or a user can override them per module and action, and an override may be **Inherit** (no override). Workspaces belong to the host product, not the auth service, so the host passes them: `authRoutes({ accessMatrix: { props: { loadWorkspaces } } })`, or `workspaces` directly.
+- **Server support.** Enabled and Hidden on roles are role mappings (`module-role`) and work today. Disabled, and every workspace or user override, are stored states that need `GET /auth/api/admin/module-states` and `POST /auth/api/admin/module-state` in `@xeplr/auth`. Until those exist the matrix says so and refuses to save them, rather than pretending they were saved.
 - `MASTER_TYPES` is `['roles', 'apis', 'pages', 'elements', 'menus']`.
 
 ### Design validation
@@ -320,8 +329,8 @@ Each page (except activate and not-activated) checks its rendered design three s
 | `RESET_PASSWORD_RULES` | `#xeplr-password`, submit |
 | `CHANGE_PASSWORD_RULES` | `#xeplr-current-password`, `#xeplr-new-password`, `#xeplr-confirm-password`, submit |
 | `PROFILE_RULES` | `#xeplr-profile-name`, `#xeplr-profile-email`, submit |
-| `USER_ROLES_MATRIX_RULES` | `#xeplr-admin-user-search`, `[role="grid"]` |
-| `ACCESS_MATRIX_RULES` | `#xeplr-admin-access-search`, `[role="tablist"]` |
+| `USER_ROLES_MATRIX_RULES` | `#xeplr-admin-user-search`, `[role="grid"]`, `#xeplr-admin-new-role` |
+| `ACCESS_MATRIX_RULES` | `#xeplr-admin-access-search`, `[role="tablist"]`, `#xeplr-admin-access-scope` (the Applies-to radiogroup) |
 | `MASTER_SETTINGS_RULES` | `#xeplr-admin-master-search`, `[role="tablist"]` |
 | `NAV_RULES` | `[aria-haspopup="menu"]` |
 
@@ -354,6 +363,9 @@ Admin (auth):
 | `toggleUserRole({ userId, roleId, assign })` | `POST /auth/api/admin/user-role` |
 | `toggleAccessRole({ type, itemId, roleId, assign })` | `POST /auth/api/admin/access-role` |
 | `toggleModuleRole({ module, action, roleId, assign })` | `POST /auth/api/admin/module-role` |
+| `getModuleStates({ scope, scopeId })` | `GET /auth/api/admin/module-states?scope=role\|workspace\|user&scopeId=…` → `[{ module, action, roleId?, state }]`. Server support pending |
+| `setModuleState({ scope, scopeId, module, action, roleId, state })` | `POST /auth/api/admin/module-state`. `state` is `enabled` / `disabled` / `hidden`, or `null` to clear. Server support pending |
+| `setApiScope(id, scope)` | `POST /auth/api/admin/master/apis/scope`. Super Admin only; `scope` is `system` or `company` |
 | `getMasterItems(type)`, `saveMasterItem(type, data)`, `deleteMasterItem(type, id)` | `GET` / `POST /auth/api/admin/master/<type>`, `POST …/<type>/delete` |
 | `listMenuItems`, `saveMenuItems`, `addMenuItem`, `removeMenuItem` | see [Changing the menu](#changing-the-menu) |
 
@@ -370,6 +382,8 @@ src/
   mt.js, activeScope.js    ─ multi-tenant levels and the scope per level
   returnTo.js              ─ where to go after a gate
   menuLabels.js            ─ labelMenuItems
+  adminPaths.js            ─ ADMIN_PAGES: the admin pages, their labels and paths
+  accessStates.js          ─ enabled / disabled / hidden / inherit: cell states and what a change sends
   AccessContext.jsx        ─ AccessProvider, useAccess, useAccessStrict
   ProtectedRoute.jsx, AccessGuard.jsx
   ThemeContext.jsx         ─ ThemeProvider, useTheme
