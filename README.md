@@ -314,7 +314,7 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 - **Adding a role.** The User Roles page has a New role field (`createRole`). The role appears as a column there and in the Access Matrix straight away. The server allows it for Super Admin only; anyone else sees its refusal.
 - **Access states.** Each Modules cell is three-way, not a checkbox: **Enabled** (shown and usable), **Disabled** (shown, greyed out, not usable) or **Hidden** (not shown). A role only partly granted shows **Mixed**. `handleStateChange(module, action, roleId, state)` saves a change; `handleModuleToggle` still works for designs written before.
 - **Applies to: Roles, Workspace or User.** Roles are the defaults. A workspace or a user can override them per module and action, and an override may be **Inherit** (no override). Workspaces belong to the host product, not the auth service, so the host passes them: `authRoutes({ accessMatrix: { props: { loadWorkspaces } } })`, or `workspaces` directly.
-- **Server support.** Enabled and Hidden on roles are role mappings (`module-role`) and work today. Disabled, and every workspace or user override, are stored states that need `GET /auth/api/admin/module-states` and `POST /auth/api/admin/module-state` in `@xeplr/auth`. Until those exist the matrix says so and refuses to save them, rather than pretending they were saved.
+- **Server support.** On roles, all three work: Enabled and Hidden are the role mapping (`module-role`), Disabled is the mapping row's state (`module-state`, `@xeplr/auth` 0013). Workspace and user overrides are not stored yet: the server answers `SCOPE_NOT_SUPPORTED`, and the matrix says so and refuses to save them rather than pretending they were saved.
 - `MASTER_TYPES` is `['roles', 'apis', 'pages', 'elements', 'menus']`.
 
 ### Design validation
@@ -363,8 +363,8 @@ Admin (auth):
 | `toggleUserRole({ userId, roleId, assign })` | `POST /auth/api/admin/user-role` |
 | `toggleAccessRole({ type, itemId, roleId, assign })` | `POST /auth/api/admin/access-role` |
 | `toggleModuleRole({ module, action, roleId, assign })` | `POST /auth/api/admin/module-role` |
-| `getModuleStates({ scope, scopeId })` | `GET /auth/api/admin/module-states?scope=role\|workspace\|user&scopeId=…` → `[{ module, action, roleId?, state }]`. Server support pending |
-| `setModuleState({ scope, scopeId, module, action, roleId, state })` | `POST /auth/api/admin/module-state`. `state` is `enabled` / `disabled` / `hidden`, or `null` to clear. Server support pending |
+| `getModuleStates({ scope, scopeId })` | `GET /auth/api/admin/module-states?scope=role\|workspace\|user&scopeId=…` → `[{ module, action, roleId?, state }]`. `role` only so far; other scopes answer `400 SCOPE_NOT_SUPPORTED` |
+| `setModuleState({ scope, scopeId, module, action, roleId, state })` | `POST /auth/api/admin/module-state`. `state` is `disabled`, or `enabled` / `null` to clear (hidden is removing the mapping, through `module-role`). `role` only so far |
 | `setApiScope(id, scope)` | `POST /auth/api/admin/master/apis/scope`. Super Admin only; `scope` is `system` or `company` |
 | `getMasterItems(type)`, `saveMasterItem(type, data)`, `deleteMasterItem(type, id)` | `GET` / `POST /auth/api/admin/master/<type>`, `POST …/<type>/delete` |
 | `listMenuItems`, `saveMenuItems`, `addMenuItem`, `removeMenuItem` | see [Changing the menu](#changing-the-menu) |

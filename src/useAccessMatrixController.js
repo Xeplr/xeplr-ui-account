@@ -64,7 +64,7 @@ export function useAccessMatrixController(props) {
       setStoredStates(indexStates(rows));
       setStatesSupported(true);
     } catch (err) {
-      // No server support yet: roles still work through their mappings, and
+      // Not stored for this scope (the server stores role states only, so far):
       // the design shows a notice rather than pretending overrides exist.
       setStoredStates({});
       setStatesSupported(false);

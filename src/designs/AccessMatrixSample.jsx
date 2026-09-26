@@ -51,8 +51,8 @@ export default function AccessMatrixSample({
 
       {activeView === 'modules' && statesSupported === false && (
         <div className="xeplr-admin-alert xeplr-admin-alert-info">
-          The server does not store access states yet. Enabled and Hidden on roles work today;
-          Disabled, and workspace or user overrides, arrive with the server update.
+          Workspace and user overrides are not stored yet. Roles work today: Enabled, Disabled
+          and Hidden.
         </div>
       )}
 
