@@ -14,6 +14,8 @@ var GROUP_FIELDS = {
 var TYPES = ['apis', 'pages', 'elements', 'menus'];
 
 var VIEWS = ['modules', 'uncategorized'];
+// Who the module switches apply to (the design's "Applies to" choice).
+var APPLIES_TO = ['role', 'workspace', 'user'];
 
 var ACTION_ORDER = { view: 0, create: 1, edit: 2, delete: 3 };
 
@@ -43,15 +45,23 @@ export function useAccessMatrixController(props) {
   // so changing either replaces the history entry rather than adding one.
   var viewKey = adminUrlKey(props.urlKey, 'view') || 'view';
   var uncatKey = adminUrlKey(props.urlKey, 'uncat') || 'uncat';
+  // Who the module switches apply to — every role, one workspace or one user —
+  // and which workspace or user: also switches, also in the URL, so a link
+  // to "the matrix for this workspace" lands on it.
+  var appliesKey = adminUrlKey(props.urlKey, 'appliesTo') || 'appliesTo';
+  var scopeKey = adminUrlKey(props.urlKey, 'scope') || 'scope';
   var urlDefaults = useMemo(function() {
     var d = {};
     d[viewKey] = 'modules';
     d[uncatKey] = 'apis';
+    d[appliesKey] = 'role';
     return d;
-  }, [viewKey, uncatKey]);
+  }, [viewKey, uncatKey, appliesKey]);
   var url = useUrlParams(urlDefaults, { inUrl: props.urlKey !== false });
   var activeView = oneOf(url.get(viewKey), VIEWS, 'modules');
   var uncatSubTab = oneOf(url.get(uncatKey), TYPES, 'apis');
+  var appliesTo = oneOf(url.get(appliesKey), APPLIES_TO, 'role');
+  var scopeId = appliesTo === 'role' ? '' : (url.get(scopeKey) || '');
   var setUrl = url.set;
   var setUncatSubTab = useCallback(function(type) {
     var patch = {};
@@ -64,8 +74,6 @@ export function useAccessMatrixController(props) {
   var [saving, setSaving] = useState({});
 
   // ── who the matrix applies to: roles (the defaults), a workspace, a user ──
-  var [appliesTo, setAppliesToState] = useState('role');
-  var [scopeId, setScopeIdState] = useState('');
   var [workspaces, setWorkspaces] = useState(props.workspaces || []);
   var [users, setUsers] = useState([]);
   // Stored states for the current scope: { 'reports:view[:roleId]': state }.
@@ -101,6 +109,19 @@ export function useAccessMatrixController(props) {
     loadData();
   }, []);
 
+  // The stored module states for whoever the URL says — on arrival, and
+  // whenever the choice changes (including Back).
+  useEffect(function() {
+    setError('');
+    loadStates(appliesTo, scopeId);
+  }, [appliesTo, scopeId]);
+
+  // A user picker needs the users; fetched the first time it is shown.
+  useEffect(function() {
+    if (appliesTo !== 'user' || users.length > 0) return;
+    getUsers().then(function(list) { setUsers(list || []); }).catch(function(err) { setError(err.message); });
+  }, [appliesTo]);
+
   async function loadData() {
     setLoading(true);
     setError('');
@@ -108,7 +129,6 @@ export function useAccessMatrixController(props) {
       var [rolesData, itemsData] = await Promise.all([getRoles(), getAccessItems()]);
       setRoles(rolesData.filter(function(r) { return r.name !== 'Super Admin'; }));
       setRawItems(itemsData);
-      await loadStates(appliesTo, scopeId);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -304,19 +324,17 @@ export function useAccessMatrixController(props) {
   }
 
   var setAppliesTo = useCallback(function(scope) {
-    setAppliesToState(scope);
-    setScopeIdState('');
-    setError('');
-    if (scope === 'user' && users.length === 0) {
-      getUsers().then(function(list) { setUsers(list || []); }).catch(function(err) { setError(err.message); });
-    }
-    loadStates(scope, '');
-  }, [users]);
+    var patch = {};
+    patch[appliesKey] = scope;
+    patch[scopeKey] = null;
+    setUrl(patch, { replace: true });
+  }, [setUrl, appliesKey, scopeKey]);
 
   var setScopeId = useCallback(function(id) {
-    setScopeIdState(id);
-    loadStates(appliesTo, id);
-  }, [appliesTo]);
+    var patch = {};
+    patch[scopeKey] = id || null;
+    setUrl(patch, { replace: true });
+  }, [setUrl, scopeKey]);
 
   // ─── Single item toggle (for uncategorized) ───
   var handleItemToggle = useCallback(async function(type, itemId, roleId, currentlyAssigned) {
