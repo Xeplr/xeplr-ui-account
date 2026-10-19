@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useUrlParams } from '@xeplr/ui-utils/src/url/useUrlState.js';
+import { adminUrlKey, oneOf, findItem, blankForm, itemForm, NEW_ITEM } from './adminUrlState.js';
 import { getMasterItems, saveMasterItem, deleteMasterItem, setApiScope } from './masterApi.js';
 import { useAccess } from './AccessContext.jsx';
 
@@ -25,15 +27,34 @@ var TABS = [
   ]},
 ];
 
-export function useMasterSettingsController() {
-  var [activeTab, setActiveTab] = useState('roles');
+var TAB_KEYS = TABS.map(function(t) { return t.key; });
+
+/**
+ * @param options.urlKey  where the tab and the row being edited live in the
+ *                        URL: by default `tab` and `item`; a prefix ('ms' →
+ *                        msTab, msItem) when the host's own keys could
+ *                        collide; `false` keeps both in memory.
+ */
+export function useMasterSettingsController(options) {
+  options = options || {};
+  // ── Where you are: the tab, and the row being edited (its id, or NEW_ITEM
+  // for the add row). Switching tabs replaces the history entry; opening or
+  // closing an editor adds one, so Back closes it.
+  var tabKey = adminUrlKey(options.urlKey, 'tab') || 'tab';
+  var itemKey = adminUrlKey(options.urlKey, 'item') || 'item';
+  var urlDefaults = useMemo(function() { var d = {}; d[tabKey] = 'roles'; return d; }, [tabKey]);
+  var url = useUrlParams(urlDefaults, { inUrl: options.urlKey !== false });
+  var activeTab = oneOf(url.get(tabKey), TAB_KEYS, 'roles');
+  var editingValue = url.get(itemKey);
+
   var [items, setItems] = useState({});
   var [search, setSearch] = useState('');
   var [loading, setLoading] = useState(true);
   var [error, setError] = useState('');
   var [saving, setSaving] = useState(false);
-  var [editingItem, setEditingItem] = useState(null);
-  var [editForm, setEditForm] = useState({});
+  // The form being typed is not a place: it stays here, tied to the row it
+  // was started for, and is rebuilt from the row whenever an editor opens.
+  var [draft, setDraft] = useState({ at: null, form: null });
   var [scopeSaving, setScopeSaving] = useState({});
 
   // Only Super Admin sees the "Super Admin only" switch at all; the server
@@ -59,6 +80,20 @@ export function useMasterSettingsController() {
   }
 
   var currentTab = TABS.find(function(t) { return t.key === activeTab; }) || TABS[0];
+
+  // The row the URL names, once this tab's rows have loaded.
+  var editing = findItem(items[activeTab], editingValue);
+  var editingItem = editing === NEW_ITEM ? NEW_ITEM : (editing ? editing.id : null);
+  var draftAt = editing ? activeTab + ':' + editingValue : null;
+  var openForm = editing === NEW_ITEM ? blankForm(currentTab.fields) : (editing ? itemForm(currentTab.fields, editing) : {});
+  var editForm = draftAt && draft.at === draftAt ? draft.form : openForm;
+
+  function openEditor(value) {
+    var patch = {};
+    patch[itemKey] = value;
+    setDraft({ at: null, form: null });
+    url.set(patch);
+  }
 
   var GROUP_FIELDS = { apis: 'apiGroup', pages: 'uiPagesGroup', elements: 'uiElementsGroup', menus: 'menuGroup' };
 
@@ -89,38 +124,35 @@ export function useMasterSettingsController() {
     });
   }, [items, activeTab, search]);
 
-  var handleTabChange = useCallback(function(tabKey) {
-    setActiveTab(tabKey);
+  var setUrl = url.set;
+  var handleTabChange = useCallback(function(nextTab) {
+    var patch = {};
+    patch[tabKey] = nextTab;
+    patch[itemKey] = null;
+    setUrl(patch, { replace: true });
     setSearch('');
-    setEditingItem(null);
-    setEditForm({});
-  }, []);
+    setDraft({ at: null, form: null });
+  }, [setUrl, tabKey, itemKey]);
 
   function startAdd() {
-    var empty = {};
-    currentTab.fields.forEach(function(f) {
-      empty[f.key] = f.type === 'boolean' ? 0 : '';
-    });
-    setEditingItem('__new__');
-    setEditForm(empty);
+    openEditor(NEW_ITEM);
   }
 
   function startEdit(item) {
-    var form = {};
-    currentTab.fields.forEach(function(f) {
-      form[f.key] = item[f.key] !== undefined ? item[f.key] : '';
-    });
-    setEditingItem(item.id);
-    setEditForm(form);
+    openEditor(item.id);
   }
 
   function cancelEdit() {
-    setEditingItem(null);
-    setEditForm({});
+    openEditor(null);
   }
 
   function updateField(fieldKey, value) {
-    setEditForm(function(prev) { var next = { ...prev }; next[fieldKey] = value; return next; });
+    if (!draftAt) return;
+    setDraft(function(prev) {
+      var next = { ...(prev.at === draftAt ? prev.form : openForm) };
+      next[fieldKey] = value;
+      return { at: draftAt, form: next };
+    });
   }
 
   async function handleSave() {
@@ -128,12 +160,12 @@ export function useMasterSettingsController() {
     setError('');
     try {
       var data = { ...editForm };
-      if (editingItem !== '__new__') {
+      if (editingItem !== NEW_ITEM) {
         data.id = editingItem;
       }
       var result = await saveMasterItem(activeTab, data);
 
-      if (editingItem === '__new__') {
+      if (editingItem === NEW_ITEM) {
         data.id = result.id;
         setItems(function(prev) {
           var next = { ...prev };
@@ -151,8 +183,7 @@ export function useMasterSettingsController() {
         });
       }
 
-      setEditingItem(null);
-      setEditForm({});
+      openEditor(null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -191,10 +222,7 @@ export function useMasterSettingsController() {
         next[activeTab] = (next[activeTab] || []).filter(function(item) { return item.id !== id; });
         return next;
       });
-      if (editingItem === id) {
-        setEditingItem(null);
-        setEditForm({});
-      }
+      if (editingItem === id) openEditor(null);
     } catch (err) {
       setError(err.message);
     } finally {

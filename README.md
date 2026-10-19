@@ -12,7 +12,7 @@ Each screen is split in three: a **page** that wires a **controller** hook (all 
 npm i @xeplr/ui-account react-router-dom
 ```
 
-Peer dependencies: `react ^18 || ^19` and `react-router-dom ^6 || ^7`. [`@xeplr/ui-utils`](https://www.npmjs.com/package/@xeplr/ui-utils) comes as a dependency (the controllers report success and failure with its `raiseSnackbar`).
+Peer dependencies: `react ^18 || ^19` and `react-router-dom ^6 || ^7`. [`@xeplr/ui-utils`](https://www.npmjs.com/package/@xeplr/ui-utils) `^1.1.2` comes as a dependency (the controllers report success and failure with its `raiseSnackbar`, and keep the admin pages' tabs in the URL with its `useUrlParams`).
 
 The package ships its source: `.jsx` files and CSS imported from the designs. Your bundler must compile JSX from `node_modules` and import CSS (Vite does both).
 
@@ -301,8 +301,8 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 | `useChangePasswordController` | `onSuccess` | `currentPassword, setCurrentPassword, newPassword, setNewPassword, confirmPassword, setConfirmPassword, error, success, loading, handleSubmit` |
 | `useProfileController` | `onSuccess` | `form, error, success, loading, fetching, handleChange, handleSubmit` |
 | `useUserRolesController` | — | `users, roles, search, setSearch, loading, error, saving, handleToggle, isAssigned, reload, newRoleName, setNewRoleName, creatingRole, createRole` |
-| `useAccessMatrixController` | `workspaces` or `loadWorkspaces` | `roles, modules, uncategorized, uncategorizedCount, uncatSubTab, setUncatSubTab, activeView, setActiveView, search, setSearch, loading, error, handleStateChange, handleModuleToggle, handleItemToggle, isItemAssigned, isModuleSaving, isItemSaving, reload, appliesTo, setAppliesTo, scopeId, setScopeId, workspaces, users, statesSupported` |
-| `useMasterSettingsController` | — | `tabs, activeTab, setActiveTab, currentTab, items, groupNames, search, setSearch, loading, error, saving, editingItem, editForm, startAdd, startEdit, cancelEdit, updateField, handleSave, handleDelete, reload, isSuperAdmin, handleScopeToggle, isScopeSaving` |
+| `useAccessMatrixController` | `workspaces` or `loadWorkspaces`, `urlKey` | `roles, modules, uncategorized, uncategorizedCount, uncatSubTab, setUncatSubTab, activeView, setActiveView, search, setSearch, loading, error, handleStateChange, handleModuleToggle, handleItemToggle, isItemAssigned, isModuleSaving, isItemSaving, reload, appliesTo, setAppliesTo, scopeId, setScopeId, workspaces, users, statesSupported` |
+| `useMasterSettingsController` | `urlKey` | `tabs, activeTab, setActiveTab, currentTab, items, groupNames, search, setSearch, loading, error, saving, editingItem, editForm, startAdd, startEdit, cancelEdit, updateField, handleSave, handleDelete, reload, isSuperAdmin, handleScopeToggle, isScopeSaving` |
 | `useNavController` | `drawerItems, settingsOverrides, notifications` | `user, accountItems, notifications, logout, accountOpen, toggleAccount, closeAccount, accountRef, drawerOpen, toggleDrawer, closeDrawer, drawerItems, drawerWidth, drawerResizing, startDrawerResize, resetDrawerWidth, nudgeDrawerWidth, drawerWidthBounds` |
 
 - Login stores the tokens and calls `AccessProvider`'s `onLogin` when a provider is present. A login refused with "Please wait, someone will activate you." navigates to `notActivatedPath` (default `/auth/not-activated`). Supplying `onSuccess` replaces the default navigation entirely.
@@ -316,6 +316,22 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 - **Applies to: Roles, Workspace or User.** Roles are the defaults. A workspace or a user can override them per module and action, and an override may be **Inherit** (no override). Workspaces belong to the host product, not the auth service, so the host passes them: `authRoutes({ accessMatrix: { props: { loadWorkspaces } } })`, or `workspaces` directly.
 - **Server support.** On roles, all three work: Enabled and Hidden are the role mapping (`module-role`), Disabled is the mapping row's state (`module-state`, `@xeplr/auth` 0013). Workspace and user overrides are not stored yet: the server answers `SCOPE_NOT_SUPPORTED`, and the matrix says so and refuses to save them rather than pretending they were saved.
 - `MASTER_TYPES` is `['roles', 'apis', 'pages', 'elements', 'menus']`.
+
+### Where you are lives in the URL
+
+The admin pages are routes of their own, so the tab you are on and the row you are editing are places: they are read from and written to the URL's query, and a refresh or a shared link lands on the same screen.
+
+| page | key (default) | holds | history |
+|---|---|---|---|
+| Master Settings | `tab` | `roles` (absent), `apis`, `pages`, `elements`, `menus` | switching replaces the entry |
+| Master Settings | `item` | the id of the row being edited, or `__new__` for the add row | opening or closing adds one, so Back closes the editor |
+| Access Matrix | `view` | `modules` (absent) or `uncategorized` | replaces |
+| Access Matrix | `uncat` | the Uncategorized sub-tab: `apis` (absent), `pages`, `elements`, `menus` | replaces |
+
+- **`urlKey` changes the keys.** Pass a prefix when the page shares its URL with keys of your own: `urlKey: 'ms'` → `msTab`, `msItem`; `urlKey: 'am'` → `amView`, `amUncat`. `urlKey: false` keeps everything in memory, as before. Pages take it as a prop (`<MasterSettingsPage urlKey="ms" />`, `authRoutes({ masterSettings: { props: { urlKey: 'ms' } } })`); the controllers as an option.
+- **Ids, not rows.** `item` is resolved against the tab's rows once they have loaded, so `editingItem` stays `null` until then, and a row that is gone opens nothing. The form being typed is not in the URL; reopening a row starts from its saved values.
+- **Values from the URL are checked.** An unknown tab, view or sub-tab falls back to the default, so an edited link never reaches the API as a type.
+- The keys and checks are pure functions in `adminUrlState.js` (`adminUrlKey`, `oneOf`, `findItem`, `blankForm`, `itemForm`).
 
 ### Design validation
 
@@ -384,6 +400,7 @@ src/
   menuLabels.js            ─ labelMenuItems
   adminPaths.js            ─ ADMIN_PAGES: the admin pages, their labels and paths
   accessStates.js          ─ enabled / disabled / hidden / inherit: cell states and what a change sends
+  adminUrlState.js         ─ the admin pages' URL keys (tab, item, view, uncat) and checks on values read back
   AccessContext.jsx        ─ AccessProvider, useAccess, useAccessStrict
   ProtectedRoute.jsx, AccessGuard.jsx
   ThemeContext.jsx         ─ ThemeProvider, useTheme

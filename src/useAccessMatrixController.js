@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useUrlParams } from '@xeplr/ui-utils/src/url/useUrlState.js';
+import { adminUrlKey, oneOf } from './adminUrlState.js';
 import { getRoles, getAccessItems, getUsers, toggleModuleRole, toggleAccessRole, getModuleStates, setModuleState } from './adminApi.js';
 import { stateKey, indexStates, roleCellState, overrideCellState, roleChangePlan, needsStoredStates } from './accessStates.js';
 
@@ -10,6 +12,8 @@ var GROUP_FIELDS = {
 };
 
 var TYPES = ['apis', 'pages', 'elements', 'menus'];
+
+var VIEWS = ['modules', 'uncategorized'];
 
 var ACTION_ORDER = { view: 0, create: 1, edit: 2, delete: 3 };
 
@@ -25,14 +29,36 @@ function parseModuleGroup(groupValue) {
  *                              "Applies to: Workspace" picker. Workspaces live in
  *                              the product (BI), not in the auth service.
  * @param props.loadWorkspaces  async () => [{ id, name }], instead of `workspaces`
+ * @param props.urlKey          where the view and the Uncategorized sub-tab
+ *                              live in the URL: by default `view` and `uncat`;
+ *                              a prefix ('am' → amView, amUncat) when the
+ *                              host's own keys could collide; `false` keeps
+ *                              both in memory.
  */
 export function useAccessMatrixController(props) {
   props = props || {};
   var [roles, setRoles] = useState([]);
   var [rawItems, setRawItems] = useState({ apis: [], pages: [], elements: [], menus: [] });
-  var [activeView, setActiveView] = useState('modules');
+  // ── Where you are: the view and the Uncategorized sub-tab, both switches,
+  // so changing either replaces the history entry rather than adding one.
+  var viewKey = adminUrlKey(props.urlKey, 'view') || 'view';
+  var uncatKey = adminUrlKey(props.urlKey, 'uncat') || 'uncat';
+  var urlDefaults = useMemo(function() {
+    var d = {};
+    d[viewKey] = 'modules';
+    d[uncatKey] = 'apis';
+    return d;
+  }, [viewKey, uncatKey]);
+  var url = useUrlParams(urlDefaults, { inUrl: props.urlKey !== false });
+  var activeView = oneOf(url.get(viewKey), VIEWS, 'modules');
+  var uncatSubTab = oneOf(url.get(uncatKey), TYPES, 'apis');
+  var setUrl = url.set;
+  var setUncatSubTab = useCallback(function(type) {
+    var patch = {};
+    patch[uncatKey] = type;
+    setUrl(patch, { replace: true });
+  }, [setUrl, uncatKey]);
   var [search, setSearch] = useState('');
-  var [uncatSubTab, setUncatSubTab] = useState('apis');
   var [loading, setLoading] = useState(true);
   var [error, setError] = useState('');
   var [saving, setSaving] = useState({});
@@ -335,9 +361,11 @@ export function useAccessMatrixController(props) {
   }
 
   var handleViewChange = useCallback(function(view) {
-    setActiveView(view);
+    var patch = {};
+    patch[viewKey] = view;
+    setUrl(patch, { replace: true });
     setSearch('');
-  }, []);
+  }, [setUrl, viewKey]);
 
   return {
     roles,
