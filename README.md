@@ -327,6 +327,8 @@ The admin pages are routes of their own, so the tab you are on and the row you a
 | Master Settings | `item` | the id of the row being edited, or `__new__` for the add row | opening or closing adds one, so Back closes the editor |
 | Access Matrix | `view` | `modules` (absent) or `uncategorized` | replaces |
 | Access Matrix | `uncat` | the Uncategorized sub-tab: `apis` (absent), `pages`, `elements`, `menus` | replaces |
+| Access Matrix | `appliesTo` | who the module switches apply to: `role` (absent), `workspace`, `user` | replaces |
+| Access Matrix | `scope` | the chosen workspace or user id (cleared when `appliesTo` changes) | replaces |
 
 - **`urlKey` changes the keys.** Pass a prefix when the page shares its URL with keys of your own: `urlKey: 'ms'` → `msTab`, `msItem`; `urlKey: 'am'` → `amView`, `amUncat`. `urlKey: false` keeps everything in memory, as before. Pages take it as a prop (`<MasterSettingsPage urlKey="ms" />`, `authRoutes({ masterSettings: { props: { urlKey: 'ms' } } })`); the controllers as an option.
 - **Ids, not rows.** `item` is resolved against the tab's rows once they have loaded, so `editingItem` stays `null` until then, and a row that is gone opens nothing. The form being typed is not in the URL; reopening a row starts from its saved values.
