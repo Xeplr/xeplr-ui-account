@@ -89,6 +89,8 @@ A custom theme is a class with the same variables — `.xeplr-theme-corporate { 
 | `resetPassword` | `/auth/reset-password` | public |
 | `activate` | `/auth/activate` | public |
 | `notActivated` | `/auth/not-activated` | public |
+| `resendActivation` | `/auth/resend-activation` | public |
+| `acceptInvite` | `/auth/accept-invite` | public — where `@xeplr/auth`'s invite emails point (`AUTH_INVITE_URL`) |
 | `profile` | `/auth/profile` | account |
 | `changePassword` | `/auth/change-password` | account |
 | `userRoles` | `/auth/admin/user-roles` | admin |
@@ -99,8 +101,9 @@ Public pages are open and never wrapped in the layout. Account and admin pages r
 
 ```jsx
 authRoutes({
-  login: { design: MyLogin },                          // framework controller + validation, your look
-  register: false,                                     // drop the route
+  login: { design: 2, props: { brand: { name: 'Acme' } } }, // built-in login design 2 (of 1–5)
+  register: { design: MyRegister },                    // framework controller + validation, your look
+  notActivated: false,                                 // drop the route
   profile: <MyProfile />,                              // full replace (same as { element: <MyProfile /> })
   userRoles: { element: <ProtectedRoute roles={['Super Admin']}><UserRolesPage /></ProtectedRoute> },
   forgotPassword: { path: '/forgot', design: MyForgot }, // mount at another path
@@ -176,7 +179,7 @@ const saved = await authFetch('/api/tasks', { method: 'POST', body: JSON.stringi
 - attaches `Authorization: Bearer <token>`;
 - attaches one header per registered multi-tenant level whose active scope has an `id` (see [Multi-tenancy](#multi-tenancy));
 - stores the token from an `X-New-Token` response header — `@xeplr/auth`'s sliding refresh, so most expiries never become a 401;
-- on a 401, rotates tokens once through `POST /auth/api/refresh` (concurrent calls share one refresh) and retries the request once. If refresh fails, it clears the stored auth and calls the session-expired handler.
+- on a 401, rotates tokens once through `POST /auth/api/refresh` (concurrent calls share one refresh) and retries the request once. If the server refuses the refresh, it clears the stored auth and calls the session-expired handler. If the server cannot be reached at all, the session is kept and the call fails with "Could not reach the server" — a network blip does not sign anyone out.
 
 On failure it **throws an `Error`**:
 
@@ -285,7 +288,7 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 
 ## Three ways to use it
 
-1. **Ready-made** — `authRoutes()`, or the pages directly: `LoginPage`, `RegisterPage`, `ForgotPasswordPage`, `ResetPasswordPage`, `ActivatePage`, `NotActivatedPage`, `ChangePasswordPage`, `ProfilePage`, `UserRolesPage`, `AccessMatrixPage`, `MasterSettingsPage`, `NavPage`. Other props (`onSuccess`, …) go to the controller.
+1. **Ready-made** — `authRoutes()`, or the pages directly: `LoginPage`, `RegisterPage`, `ForgotPasswordPage`, `ResetPasswordPage`, `ResendActivationPage`, `AcceptInvitePage`, `ActivatePage`, `NotActivatedPage`, `ChangePasswordPage`, `ProfilePage`, `UserRolesPage`, `AccessMatrixPage`, `MasterSettingsPage`, `NavPage`. Other props (`onSuccess`, …) go to the controller.
 2. **Your own design** — `<LoginPage design={MyLogin} />` or `authRoutes({ login: { design: MyLogin } })`. Your component receives the controller's return value as props, and the page still checks it for the required elements (below).
 3. **Hooks and model** — call a `use*Controller` hook in your own component, or use the React-free files (`api.js`, `adminApi.js`, `masterApi.js`, `token.js`, `mt.js`, `activeScope.js`, `returnTo.js`, `menuLabels.js`) alone.
 
@@ -298,14 +301,20 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 | `useForgotPasswordController` | — | `email, setEmail, error, success, loading, handleSubmit` |
 | `useResetPasswordController` | — | `token, password, setPassword, error, success, loading, handleSubmit` |
 | `useActivateController` | — | `token, error, success, loading` |
-| `useChangePasswordController` | `onSuccess` | `currentPassword, setCurrentPassword, newPassword, setNewPassword, confirmPassword, setConfirmPassword, error, success, loading, handleSubmit` |
+| `useResendActivationController` | `onSuccess` | `email, setEmail, error, success, loading, handleSubmit` |
+| `useAcceptInviteController` | `onSuccess` | `token, invitee, name, setName, password, setPassword, confirmPassword, setConfirmPassword, error, success, checking, loading, handleSubmit` |
+| `useChangePasswordController` | `onSuccess`, `loginPath` | `currentPassword, setCurrentPassword, newPassword, setNewPassword, confirmPassword, setConfirmPassword, error, success, loading, handleSubmit` |
 | `useProfileController` | `onSuccess` | `form, error, success, loading, fetching, handleChange, handleSubmit` |
-| `useUserRolesController` | — | `users, roles, search, setSearch, loading, error, saving, handleToggle, isAssigned, reload, newRoleName, setNewRoleName, creatingRole, createRole` |
+| `useUserRolesController` | — | `users, roles, search, setSearch, loading, error, saving, handleToggle, handleActivate, isAssigned, reload, newRoleName, setNewRoleName, creatingRole, createRole` |
 | `useAccessMatrixController` | `workspaces` or `loadWorkspaces`, `urlKey` | `roles, modules, uncategorized, uncategorizedCount, uncatSubTab, setUncatSubTab, activeView, setActiveView, search, setSearch, loading, error, handleStateChange, handleModuleToggle, handleItemToggle, isItemAssigned, isModuleSaving, isItemSaving, reload, appliesTo, setAppliesTo, scopeId, setScopeId, workspaces, users, statesSupported` |
 | `useMasterSettingsController` | `urlKey` | `tabs, activeTab, setActiveTab, currentTab, items, groupNames, search, setSearch, loading, error, saving, editingItem, editForm, startAdd, startEdit, cancelEdit, updateField, handleSave, handleDelete, reload, isSuperAdmin, handleScopeToggle, isScopeSaving` |
 | `useNavController` | `drawerItems, settingsOverrides, notifications` | `user, accountItems, notifications, logout, accountOpen, toggleAccount, closeAccount, accountRef, drawerOpen, toggleDrawer, closeDrawer, drawerItems, drawerWidth, drawerResizing, startDrawerResize, resetDrawerWidth, nudgeDrawerWidth, drawerWidthBounds` |
 
-- Login stores the tokens and calls `AccessProvider`'s `onLogin` when a provider is present. A login refused with "Please wait, someone will activate you." navigates to `notActivatedPath` (default `/auth/not-activated`). Supplying `onSuccess` replaces the default navigation entirely.
+- Login stores the tokens and calls `AccessProvider`'s `onLogin` when a provider is present. A login refused as not activated (`403`, `code: 'NOT_ACTIVATED'`; the older server's sentence is still recognised) navigates to `notActivatedPath` (default `/auth/not-activated`). Supplying `onSuccess` replaces the default navigation entirely.
+- Register replaces the form with "Check your email" and a link to resend. Not-activated and a failed activation link both offer **Send the link again** (`/auth/resend-activation`).
+- Accept invite reads `?token=`, shows who the invite is for (`invite-preview`), then sets name and password (`invite-accept`), which activates the account.
+- Change password signs the person out afterwards and goes to `loginPath` (default `/auth/login`) — the server ends every session, this one included. With `onSuccess`, navigation is yours.
+- User roles shows **Invited** on people who have not accepted their invite yet (they activate by accepting it), and **Not activated** on accounts waiting for activation, with an **Activate** button (`handleActivate(userId)`) for when the mail never arrived. The server also grants the app's sign-up roles, so the list reloads.
 - Register, profile: `handleChange` reads `e.target.name`, so inputs need `name="email"` etc. `form` is `{ name, email, phoneNumber, password }` / `{ name, email, phoneNumber }`.
 - Reset and activate read `?token=` (activate also passes `?workflowKey=` back to the server) and activate runs on mount.
 - The access matrix groups items whose group is `module:action` (e.g. `account:view`) under Modules; the rest are Uncategorized. The Super Admin role is left out of its columns.
@@ -345,6 +354,8 @@ Each page (except activate and not-activated) checks its rendered design three s
 | `REGISTER_RULES` | `#xeplr-name`, `#xeplr-email`, `#xeplr-password`, submit |
 | `FORGOT_PASSWORD_RULES` | `#xeplr-email`, submit |
 | `RESET_PASSWORD_RULES` | `#xeplr-password`, submit |
+| `RESEND_ACTIVATION_RULES` | `#xeplr-email`, submit |
+| `ACCEPT_INVITE_RULES` | `#xeplr-password`, `#xeplr-confirm-password`, submit |
 | `CHANGE_PASSWORD_RULES` | `#xeplr-current-password`, `#xeplr-new-password`, `#xeplr-confirm-password`, submit |
 | `PROFILE_RULES` | `#xeplr-profile-name`, `#xeplr-profile-email`, submit |
 | `USER_ROLES_MATRIX_RULES` | `#xeplr-admin-user-search`, `[role="grid"]`, `#xeplr-admin-new-role` |
@@ -352,9 +363,30 @@ Each page (except activate and not-activated) checks its rendered design three s
 | `MASTER_SETTINGS_RULES` | `#xeplr-admin-master-search`, `[role="tablist"]` |
 | `NAV_RULES` | `[aria-haspopup="menu"]` |
 
+### Login designs
+
+The login page comes in five built-in designs. Each fills the whole screen with the theme's colours, so it never shows as a dark box on the browser's white page — the theme variables live on the `ThemeProvider` wrapper, not on `body`, so a design that styles only a card leaves everything around it unstyled.
+
+| `design` | Export | Look |
+|---|---|---|
+| `1` (default) | `LoginDesign1` | Card — a raised card on a soft dotted page |
+| `2` | `LoginDesign2` | Split — a brand panel on the left, the form on the right (panel on top on phones) |
+| `3` | `LoginDesign3` | Minimal — no card, a large heading and underlined fields |
+| `4` | `LoginDesign4` | Glow — a frosted card over soft light in the accent colour |
+| `5` | `LoginDesign5` | App bar — a product header, the form, a footer |
+
+Pick one by number, or pass the component — both work in `authRoutes` and on `LoginPage`. `brand` is optional and only changes what the design shows:
+
+```jsx
+authRoutes({ login: { design: 3, props: { brand: { name: 'Acme', tagline: 'Reports your team can trust.', logo: '/logo.svg' } } } })
+<LoginPage design={LoginDesign2} brand={{ name: 'Acme' }} />
+```
+
+Without a `logo`, the designs show the first letter of `name` as a mark. An unknown number warns and shows design 1. All five share one form (`#xeplr-email`, `#xeplr-password` with a show/hide button, the submit button, forgot-password and register links), so they all pass `LOGIN_RULES`. Styles are namespaced `.xeplr-login-*`.
+
 ### Designs
 
-`LoginSample`, `RegisterSample`, `ForgotPasswordSample`, `ResetPasswordSample`, `ActivateSample`, `NotActivatedSample`, `ChangePasswordSample`, `ProfileSample`, `UserRolesMatrixSample`, `AccessMatrixSample`, `MasterSettingsSample`, `NavTopSample`, `NavDrawer`, `NavFloatingSettings`, `AccountMenu`, `NotificationsBell` — the defaults, exported as a reference or starting point. Styles are namespaced `.xeplr-auth-*`, `.xeplr-admin-*` and `.xeplr-nav-*`.
+`LoginDesign1`–`LoginDesign5` (above), `LoginSample` (the old plain login box, no longer the default), `RegisterSample`, `ForgotPasswordSample`, `ResetPasswordSample`, `ResendActivationSample`, `AcceptInviteSample`, `ActivateSample`, `NotActivatedSample`, `ChangePasswordSample`, `ProfileSample`, `UserRolesMatrixSample`, `AccessMatrixSample`, `MasterSettingsSample`, `NavTopSample`, `NavDrawer`, `NavFloatingSettings`, `AccountMenu`, `NotificationsBell` — the defaults, exported as a reference or starting point. Styles are namespaced `.xeplr-auth-*`, `.xeplr-admin-*` and `.xeplr-nav-*`.
 
 ## API
 
@@ -365,6 +397,9 @@ Unauthenticated calls go straight to `fetch`; the rest use `authFetch`. All reso
 | `registerUser({ email, password, name, phoneNumber })` | `POST /auth/api/register` |
 | `loginUser({ email, password })` | `POST /auth/api/login` → `{ accessToken, refreshToken, user, access }` (does not store them — the login controller does) |
 | `activateAccount(token, workflowKey?)` | `GET /auth/api/activate?token=…` |
+| `resendActivation({ email })` | `POST /auth/api/resend-activation` — the same answer for any address |
+| `previewInvite(token)` | `GET /auth/api/invite-preview?token=…` → `{ email, name }` |
+| `acceptInvite({ token, name, password })` | `POST /auth/api/invite-accept` |
 | `forgotPassword({ email })` | `POST /auth/api/forgot-password` |
 | `resetPassword({ token, newPassword })` | `POST /auth/api/reset-password` |
 | `changePassword({ currentPassword, newPassword })` | `POST /auth/api/change-password` (auth) |
@@ -378,6 +413,7 @@ Admin (auth):
 | function | request |
 |---|---|
 | `getUsers()`, `getRoles()`, `getAccessItems()` | `GET /auth/api/admin/users`, `/roles`, `/access-items` |
+| `activateUser(userId)` | `POST /auth/api/admin/users/:id/activate` |
 | `toggleUserRole({ userId, roleId, assign })` | `POST /auth/api/admin/user-role` |
 | `toggleAccessRole({ type, itemId, roleId, assign })` | `POST /auth/api/admin/access-role` |
 | `toggleModuleRole({ module, action, roleId, assign })` | `POST /auth/api/admin/module-role` |
@@ -410,7 +446,7 @@ src/
   validateDesign.js        ─ useDesignValidator and the *_RULES
   pages.jsx                ─ controller + design, per screen; NavPage
   authRoutes.jsx           ─ authRoutes, authPath
-  designs/                 ─ the *Sample designs, nav parts, theme.css, auth.css, admin.css, nav.css
+  designs/                 ─ the *Sample designs, LoginDesigns.jsx + LoginForm.jsx + login.css, nav parts, theme.css, auth.css, admin.css, nav.css
 ```
 
 ## Tests

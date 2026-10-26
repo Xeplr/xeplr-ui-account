@@ -1,9 +1,22 @@
 import { Link } from 'react-router-dom';
 import './auth.css';
 
-// error/success feedback fires as a snackbar (see useRegisterController.js) —
-// this design doesn't render it inline.
-export default function RegisterSample({ form, loading, handleChange, handleSubmit }) {
+// error/success feedback fires as a snackbar (see useRegisterController.js);
+// once registered, the form gives way to what to do next.
+export default function RegisterSample({ form, success, loading, handleChange, handleSubmit }) {
+  if (success) {
+    return (
+      <div className="xeplr-auth-container">
+        <h1>Check your email</h1>
+        <p className="xeplr-auth-note">{success}</p>
+        <div className="xeplr-auth-links">
+          <p>No email? <Link to="/auth/resend-activation">Send the link again</Link></p>
+          <p><Link to="/auth/login">Back to Login</Link></p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="xeplr-auth-container">
       <h1>Register</h1>

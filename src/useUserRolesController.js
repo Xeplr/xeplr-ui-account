@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getUsers, getRoles, toggleUserRole } from './adminApi.js';
+import { getUsers, getRoles, toggleUserRole, activateUser } from './adminApi.js';
 import { saveMasterItem } from './masterApi.js';
 
 export function useUserRolesController() {
@@ -65,6 +65,23 @@ export function useUserRolesController() {
     }
   }, [roles]);
 
+  // For someone whose activation mail never arrived. The server also grants
+  // the app's sign-up roles, so the row is reloaded rather than patched.
+  var handleActivate = useCallback(async function(userId) {
+    var key = userId + ':activate';
+    setSaving(function(prev) { var next = { ...prev }; next[key] = true; return next; });
+    setError('');
+    try {
+      await activateUser(userId);
+      var usersData = await getUsers();
+      setUsers(usersData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(function(prev) { var next = { ...prev }; delete next[key]; return next; });
+    }
+  }, []);
+
   // A new role becomes a column here and in the Access Matrix: both read the
   // role list from the server. Creating one is Super Admin only; anyone else
   // gets the server's refusal as the error.
@@ -97,6 +114,7 @@ export function useUserRolesController() {
     error,
     saving,
     handleToggle,
+    handleActivate,
     isAssigned,
     newRoleName,
     setNewRoleName,

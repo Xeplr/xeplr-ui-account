@@ -104,3 +104,10 @@
   color: var(--xeplr-warning);
   margin: 20px 0;
 }
+
+/* A short explanation under a heading (register done, not activated yet). */
+.xeplr-auth-note {
+  margin: 0 0 15px;
+  color: var(--xeplr-text-secondary);
+  line-height: 1.5;
+}

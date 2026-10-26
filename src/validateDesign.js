@@ -79,6 +79,17 @@ export var FORGOT_PASSWORD_RULES = [
   { selector: 'button[type="submit"]', label: 'Submit button' }
 ];
 
+export var RESEND_ACTIVATION_RULES = [
+  { id: 'xeplr-email', label: 'Email input' },
+  { selector: 'button[type="submit"]', label: 'Submit button' }
+];
+
+export var ACCEPT_INVITE_RULES = [
+  { id: 'xeplr-password', label: 'Password input' },
+  { id: 'xeplr-confirm-password', label: 'Confirm password input' },
+  { selector: 'button[type="submit"]', label: 'Submit button' }
+];
+
 export var RESET_PASSWORD_RULES = [
   { id: 'xeplr-password', label: 'Password input' },
   { selector: 'button[type="submit"]', label: 'Submit button' }
