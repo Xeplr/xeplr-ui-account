@@ -1,4 +1,5 @@
 import { memo, useState, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import AccountMenu from './AccountMenu.jsx';
 import NotificationsBell from './NotificationsBell.jsx';
 
@@ -39,6 +40,7 @@ function NavDrawer({
   drawerWidth, drawerResizing, startDrawerResize, resetDrawerWidth, nudgeDrawerWidth, drawerWidthBounds
 }) {
   var [query, setQuery] = useState('');
+  var pathname = useLocation().pathname;
 
   var bounds = drawerWidthBounds || { min: 180, max: 480, step: 16 };
 
@@ -60,6 +62,16 @@ function NavDrawer({
 
   var buckets = useMemo(function() { return bucketItems(visibleItems); }, [visibleItems]);
 
+  // WHERE YOU ARE. An item is the current page when it says so (`active`) or
+  // when the URL is its `path` or under it — /tasks is current on /tasks/12
+  // too, because the form you opened from the list is still that section. An
+  // item with neither is never highlighted.
+  function isCurrent(item) {
+    if (typeof item.active === 'boolean') return item.active;
+    if (!item.path) return false;
+    return pathname === item.path || pathname.indexOf(item.path.replace(/\/$/, '') + '/') === 0;
+  }
+
   function renderItem(item) {
     // A COUNT THAT HAS TO BE SEEN FROM WHEREVER YOU ARE.
     //
@@ -72,11 +84,13 @@ function NavDrawer({
     // 0, null and undefined all render NOTHING. A pill reading "0" is noise
     // that trains people to stop looking at the pill.
     var badge = item.badge === 0 || item.badge == null || item.badge === '' ? null : item.badge;
+    var current = isCurrent(item);
     return (
       <button
         key={item.key || item.name}
         type="button"
-        className={'xeplr-nav-drawer-link' + (badge ? ' xeplr-nav-drawer-link-badged' : '')}
+        className={'xeplr-nav-drawer-link' + (badge ? ' xeplr-nav-drawer-link-badged' : '') + (current ? ' is-current' : '')}
+        aria-current={current ? 'page' : undefined}
         onClick={item.clickHandler}
         // The count belongs in the tooltip too — the collapsed dot says
         // "something", and the hover has to say how many.
@@ -169,7 +183,7 @@ function NavDrawer({
 
       {/* LAST child and absolutely positioned, so it sits over the drawer's
           right border at any height without taking part in the column layout
-          above it. Only when expanded: there is nothing to widen on a 60px
+          above it. Only when expanded: there is nothing to widen on a 48px
           icon rail, and a resize handle there would just fight the toggle. */}
       {drawerOpen && (
         <div

@@ -16,7 +16,7 @@ var BUILTIN_SETTINGS_ITEMS = [
 var NOTIFICATIONS_MENU_NAME = 'Notifications';
 
 // ── drawer width ────────────────────────────────────────────────────────
-// Only the EXPANDED drawer is resizable. Collapsed is a 60px icon rail whose
+// Only the EXPANDED drawer is resizable. Collapsed is a 48px icon rail whose
 // width is the icon's, not a preference — there is nothing in it to give room
 // to, so nav.css keeps owning that number.
 //
