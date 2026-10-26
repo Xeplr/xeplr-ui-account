@@ -284,9 +284,13 @@ async function refreshAccessToken() {
       setRefreshToken(data.refreshToken);
       return true;
     } catch (e) {
-      clearAuth();
-      if (_onSessionExpired) _onSessionExpired();
-      return false;
+      // The server was not reached — a dropped connection, a restart. That
+      // says nothing about the session, so it stays: signing someone out over
+      // a network blip loses their place for no reason. The caller sees the
+      // connection error instead.
+      const err = new Error('Could not reach the server. Check your connection and try again.');
+      err.cause = e;
+      throw err;
     }
   })();
 
@@ -384,6 +388,26 @@ export function registerUser({ email, password, name, phoneNumber }) {
   return request('/auth/api/register', {
     method: 'POST',
     body: JSON.stringify({ email, password, name, phoneNumber }),
+  });
+}
+
+// Same answer whether or not the address has an account waiting.
+export function resendActivation({ email }) {
+  return request('/auth/api/resend-activation', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+// Who an invite link is for, so the page can greet them before they set a password.
+export function previewInvite(token) {
+  return request('/auth/api/invite-preview?token=' + encodeURIComponent(token));
+}
+
+export function acceptInvite({ token, name, password }) {
+  return request('/auth/api/invite-accept', {
+    method: 'POST',
+    body: JSON.stringify({ token, name, password }),
   });
 }
 

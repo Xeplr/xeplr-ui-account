@@ -9,6 +9,11 @@ export function getUsers() {
   return authFetch('/auth/api/admin/users');
 }
 
+// Activate an account without its emailed link (it also gets the app's sign-up roles).
+export function activateUser(userId) {
+  return authFetch('/auth/api/admin/users/' + encodeURIComponent(userId) + '/activate', { method: 'POST' });
+}
+
 export function getRoles() {
   return authFetch('/auth/api/admin/roles');
 }

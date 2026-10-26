@@ -4,14 +4,16 @@ import { useRegisterController } from './useRegisterController.js';
 import { useForgotPasswordController } from './useForgotPasswordController.js';
 import { useResetPasswordController } from './useResetPasswordController.js';
 import { useActivateController } from './useActivateController.js';
+import { useResendActivationController } from './useResendActivationController.js';
+import { useAcceptInviteController } from './useAcceptInviteController.js';
 import { useChangePasswordController } from './useChangePasswordController.js';
 import { useProfileController } from './useProfileController.js';
 import { useUserRolesController } from './useUserRolesController.js';
 import { useAccessMatrixController } from './useAccessMatrixController.js';
 import { useMasterSettingsController } from './useMasterSettingsController.js';
 import { useNavController } from './useNavController.js';
-import { LoginSample, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, NavDrawer, NavFloatingSettings } from './designs/index.js';
-import { useDesignValidator, LOGIN_RULES, REGISTER_RULES, FORGOT_PASSWORD_RULES, RESET_PASSWORD_RULES, CHANGE_PASSWORD_RULES, PROFILE_RULES, USER_ROLES_MATRIX_RULES, ACCESS_MATRIX_RULES, MASTER_SETTINGS_RULES, NAV_RULES } from './validateDesign.js';
+import { LoginDesign1, LoginDesign2, LoginDesign3, LoginDesign4, LoginDesign5, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ResendActivationSample, AcceptInviteSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, NavDrawer, NavFloatingSettings } from './designs/index.js';
+import { useDesignValidator, LOGIN_RULES, REGISTER_RULES, FORGOT_PASSWORD_RULES, RESET_PASSWORD_RULES, RESEND_ACTIVATION_RULES, ACCEPT_INVITE_RULES, CHANGE_PASSWORD_RULES, PROFILE_RULES, USER_ROLES_MATRIX_RULES, ACCESS_MATRIX_RULES, MASTER_SETTINGS_RULES, NAV_RULES } from './validateDesign.js';
 
 /**
  * Ready-made pages: controller (the logic) + sample design (the look), wired together.
@@ -19,7 +21,7 @@ import { useDesignValidator, LOGIN_RULES, REGISTER_RULES, FORGOT_PASSWORD_RULES,
  * Every page takes an optional `design` prop — pass your OWN design component to
  * re-skin the page while keeping the framework's controller + validation. The design
  * receives the controller's output as props (the same contract the sample honours), e.g.
- * LoginSample gets { email, setEmail, password, setPassword, error, loading, handleSubmit }.
+ * LoginDesign1 gets { email, setEmail, password, setPassword, error, loading, handleSubmit }.
  *
  *   <LoginPage design={MyLogin} onSuccess={...} />   // my look, framework logic
  *   <LoginPage onSuccess={...} />                     // framework look
@@ -27,11 +29,19 @@ import { useDesignValidator, LOGIN_RULES, REGISTER_RULES, FORGOT_PASSWORD_RULES,
  * Any other props (onSuccess, etc.) flow through to the controller.
  */
 
-export function LoginPage({ design, ...props }) {
+var LOGIN_DESIGNS = { 1: LoginDesign1, 2: LoginDesign2, 3: LoginDesign3, 4: LoginDesign4, 5: LoginDesign5 };
+
+// `design` is your own component or a built-in design's number (1–5, default 1).
+// `brand` ({ name, tagline, logo }) is for the view only — LoginDesign1–5 show it.
+export function LoginPage({ design, brand, ...props }) {
   var controller = useLoginController(props);
   var ref = useDesignValidator('LoginPage', LOGIN_RULES);
-  var View = design || LoginSample;
-  return <div ref={ref}><View {...controller} /></div>;
+  var View = typeof design === 'number' ? LOGIN_DESIGNS[design] : design;
+  if (!View) {
+    if (design != null) console.warn('[xeplr-ui-account] LoginPage: no built-in design ' + design + ' (use 1–5); showing design 1.');
+    View = LoginDesign1;
+  }
+  return <div ref={ref}><View {...controller} brand={brand} /></div>;
 }
 
 export function RegisterPage({ design, ...props }) {
@@ -59,6 +69,20 @@ export function ActivatePage({ design, ...props }) {
   var controller = useActivateController(props);
   var View = design || ActivateSample;
   return <View {...controller} />;
+}
+
+export function ResendActivationPage({ design, ...props }) {
+  var controller = useResendActivationController(props);
+  var ref = useDesignValidator('ResendActivationPage', RESEND_ACTIVATION_RULES);
+  var View = design || ResendActivationSample;
+  return <div ref={ref}><View {...controller} /></div>;
+}
+
+export function AcceptInvitePage({ design, ...props }) {
+  var controller = useAcceptInviteController(props);
+  var ref = useDesignValidator('AcceptInvitePage', ACCEPT_INVITE_RULES);
+  var View = design || AcceptInviteSample;
+  return <div ref={ref}><View {...controller} /></div>;
 }
 
 export function NotActivatedPage({ design }) {

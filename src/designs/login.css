@@ -1,0 +1,353 @@
+@import './theme.css';
+
+/* Login designs 1–5 (LoginDesigns.jsx). Every design owns the full viewport
+   and paints it from the theme, because the theme variables live on the
+   ThemeProvider wrapper, not on body — a page that only styles a card shows
+   that card floating on the browser's own white. */
+
+.xeplr-login {
+  --xeplr-login-accent-soft: color-mix(in srgb, var(--xeplr-accent) 14%, transparent);
+  position: relative;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: var(--xeplr-bg-primary);
+  color: var(--xeplr-text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+}
+
+.xeplr-login *, .xeplr-login *::before, .xeplr-login *::after { box-sizing: border-box; }
+
+.xeplr-login h1 {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.xeplr-login-sub {
+  margin: 0 0 24px;
+  color: var(--xeplr-text-secondary);
+  line-height: 1.5;
+}
+
+.xeplr-login a { color: var(--xeplr-accent); text-decoration: none; }
+.xeplr-login a:hover { text-decoration: underline; }
+
+/* ─── Brand mark ─── */
+.xeplr-login-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--xeplr-accent);
+  color: var(--xeplr-accent-text);
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.xeplr-login-logo { height: 40px; width: auto; display: block; }
+
+/* ─── Shared form ─── */
+.xeplr-login-form { display: flex; flex-direction: column; gap: 16px; }
+
+.xeplr-login-field { display: flex; flex-direction: column; gap: 6px; }
+
+.xeplr-login-field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.xeplr-login-field label { font-weight: 600; font-size: 13px; }
+
+.xeplr-login-forgot { font-size: 13px; white-space: nowrap; }
+
+.xeplr-login-field input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--xeplr-input-border);
+  border-radius: 8px;
+  background: var(--xeplr-input-bg);
+  color: var(--xeplr-input-text);
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.xeplr-login-field input::placeholder { color: var(--xeplr-input-placeholder); }
+
+.xeplr-login-field input:focus {
+  outline: none;
+  border-color: var(--xeplr-border-focus);
+  box-shadow: 0 0 0 3px var(--xeplr-login-accent-soft);
+}
+
+.xeplr-login-password { position: relative; }
+.xeplr-login-password input { padding-right: 64px; }
+
+.xeplr-login-reveal {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  height: 30px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--xeplr-text-secondary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.xeplr-login-reveal:hover { background: var(--xeplr-bg-hover); color: var(--xeplr-text-primary); }
+
+.xeplr-login-submit {
+  height: 44px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 8px;
+  background: var(--xeplr-accent);
+  color: var(--xeplr-accent-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.xeplr-login-submit:hover { background: var(--xeplr-accent-hover); }
+.xeplr-login-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.xeplr-login-alt { margin: 4px 0 0; text-align: center; color: var(--xeplr-text-secondary); }
+
+/* ─── Shared card ─── */
+.xeplr-login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px 32px 32px;
+  border: 1px solid var(--xeplr-border-primary);
+  border-radius: 16px;
+  background: var(--xeplr-bg-tertiary);
+  box-shadow: var(--xeplr-shadow-lg);
+}
+
+/* ─── 1 · Card ─── */
+.xeplr-login-d1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  background:
+    radial-gradient(var(--xeplr-border-primary) 1px, transparent 1px) 0 0 / 22px 22px,
+    var(--xeplr-bg-secondary);
+}
+
+.xeplr-login-d1 .xeplr-login-card { text-align: left; }
+.xeplr-login-d1 .xeplr-login-mark,
+.xeplr-login-d1 .xeplr-login-logo { margin-bottom: 20px; }
+
+/* ─── 2 · Split ─── */
+.xeplr-login-d2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+.xeplr-login-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 40px 48px;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.18), transparent 45%),
+    linear-gradient(150deg, var(--xeplr-accent), color-mix(in srgb, var(--xeplr-accent) 55%, #000));
+  color: #fff;
+}
+
+.xeplr-login-panel-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 650;
+  font-size: 16px;
+}
+
+.xeplr-login-panel .xeplr-login-mark { background: rgba(255, 255, 255, 0.2); color: #fff; }
+
+.xeplr-login-panel-copy h2 {
+  max-width: 440px;
+  margin: 0;
+  font-size: 34px;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.xeplr-login-panel-foot { font-size: 13px; opacity: 0.75; }
+
+.xeplr-login-d2 .xeplr-login-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+}
+
+.xeplr-login-d2 .xeplr-login-inner { width: 100%; max-width: 380px; }
+
+@media (max-width: 820px) {
+  .xeplr-login-d2 { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .xeplr-login-panel { padding: 24px 20px; gap: 16px; }
+  .xeplr-login-panel-copy h2 { font-size: 22px; }
+  .xeplr-login-panel-foot { display: none; }
+  .xeplr-login-d2 .xeplr-login-main { align-items: flex-start; padding: 32px 16px; }
+}
+
+/* ─── 3 · Minimal ─── */
+.xeplr-login-d3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+.xeplr-login-d3 .xeplr-login-inner { width: 100%; max-width: 380px; }
+
+.xeplr-login-eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--xeplr-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.xeplr-login-d3 h1 { margin-bottom: 36px; font-size: 32px; letter-spacing: -0.02em; }
+
+.xeplr-login-d3 .xeplr-login-form { gap: 24px; }
+
+.xeplr-login-d3 .xeplr-login-field label {
+  color: var(--xeplr-text-secondary);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.xeplr-login-d3 .xeplr-login-field input {
+  padding: 0 2px;
+  border: none;
+  border-bottom: 1px solid var(--xeplr-input-border);
+  border-radius: 0;
+  background: transparent;
+  font-size: 16px;
+}
+
+.xeplr-login-d3 .xeplr-login-field input:focus {
+  border-bottom-color: var(--xeplr-accent);
+  box-shadow: 0 1px 0 0 var(--xeplr-accent);
+}
+
+.xeplr-login-d3 .xeplr-login-submit { border-radius: 999px; margin-top: 8px; }
+.xeplr-login-d3 .xeplr-login-alt { text-align: left; }
+
+/* ─── 4 · Glow ─── */
+.xeplr-login-d4 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  overflow: hidden;
+  background: var(--xeplr-bg-primary);
+}
+
+.xeplr-login-glow {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.xeplr-login-glow-a { top: -160px; left: -120px; background: var(--xeplr-accent); }
+.xeplr-login-glow-b { bottom: -200px; right: -140px; background: color-mix(in srgb, var(--xeplr-accent) 50%, #22d3ee); }
+
+.xeplr-login-d4 .xeplr-login-card {
+  position: relative;
+  text-align: center;
+  background: color-mix(in srgb, var(--xeplr-bg-tertiary) 72%, transparent);
+  border-color: color-mix(in srgb, var(--xeplr-text-primary) 12%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.xeplr-login-d4 .xeplr-login-mark,
+.xeplr-login-d4 .xeplr-login-logo { margin: 0 auto 18px; }
+.xeplr-login-d4 .xeplr-login-form { text-align: left; }
+.xeplr-login-d4 .xeplr-login-submit {
+  background: linear-gradient(135deg, var(--xeplr-accent), color-mix(in srgb, var(--xeplr-accent) 55%, #22d3ee));
+}
+.xeplr-login-d4 .xeplr-login-submit:hover { filter: brightness(1.08); }
+
+/* ─── 5 · App bar ─── */
+.xeplr-login-d5 { display: flex; flex-direction: column; background: var(--xeplr-bg-secondary); }
+
+.xeplr-login-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 64px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--xeplr-border-primary);
+  background: var(--xeplr-bg-primary);
+}
+
+.xeplr-login-bar .xeplr-login-mark { width: 32px; height: 32px; border-radius: 8px; font-size: 15px; }
+
+.xeplr-login .xeplr-login-bar-action {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid var(--xeplr-border-primary);
+  border-radius: 8px;
+  color: var(--xeplr-text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.xeplr-login .xeplr-login-bar-action:hover { background: var(--xeplr-bg-hover); text-decoration: none; }
+
+.xeplr-login-d5 .xeplr-login-main {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 72px 16px 48px;
+}
+
+.xeplr-login-d5 .xeplr-login-card { box-shadow: var(--xeplr-shadow-md); border-radius: 12px; }
+
+.xeplr-login-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  border-top: 1px solid var(--xeplr-border-primary);
+  color: var(--xeplr-text-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .xeplr-login-card { padding: 28px 20px 24px; }
+  .xeplr-login-d5 .xeplr-login-main { padding-top: 32px; }
+}

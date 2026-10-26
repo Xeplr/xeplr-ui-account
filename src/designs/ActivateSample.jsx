@@ -10,6 +10,7 @@ export default function ActivateSample({ token, error, success, loading }) {
     return (
       <div className="xeplr-auth-container">
         <div className="xeplr-auth-links">
+          <p><Link to="/auth/resend-activation">Send a new activation link</Link></p>
           <p><Link to="/auth/register">Register a new account</Link></p>
         </div>
       </div>
@@ -20,8 +21,14 @@ export default function ActivateSample({ token, error, success, loading }) {
     <div className="xeplr-auth-container">
       <h1>Account Activation</h1>
       {loading && <div className="xeplr-auth-alert">Activating your account...</div>}
-      {(error || success) && (
+      {success && (
         <div className="xeplr-auth-links">
+          <p><Link to="/auth/login">Go to Login</Link></p>
+        </div>
+      )}
+      {error && (
+        <div className="xeplr-auth-links">
+          <p><Link to="/auth/resend-activation">Send a new activation link</Link></p>
           <p><Link to="/auth/login">Go to Login</Link></p>
         </div>
       )}

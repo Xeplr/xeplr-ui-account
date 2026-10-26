@@ -4,6 +4,7 @@ import { Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute.jsx';
 import {
   LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ActivatePage,
+  ResendActivationPage, AcceptInvitePage,
   NotActivatedPage, ProfilePage, ChangePasswordPage,
   UserRolesPage, AccessMatrixPage, MasterSettingsPage
 } from './pages.jsx';
@@ -22,6 +23,8 @@ var MANIFEST = [
   { key: 'resetPassword',  path: '/auth/reset-password',        Page: ResetPasswordPage,  group: 'public' },
   { key: 'activate',       path: '/auth/activate',              Page: ActivatePage,       group: 'public' },
   { key: 'notActivated',   path: '/auth/not-activated',         Page: NotActivatedPage,   group: 'public' },
+  { key: 'resendActivation', path: '/auth/resend-activation',   Page: ResendActivationPage, group: 'public' },
+  { key: 'acceptInvite',   path: '/auth/accept-invite',         Page: AcceptInvitePage,   group: 'public' },
   { key: 'profile',        path: '/auth/profile',               Page: ProfilePage,        group: 'account' },
   { key: 'changePassword', path: '/auth/change-password',       Page: ChangePasswordPage, group: 'account' },
   { key: 'userRoles',      path: adminPath('userRoles'),      Page: UserRolesPage,      group: 'admin' },
