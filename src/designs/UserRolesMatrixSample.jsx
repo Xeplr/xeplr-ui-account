@@ -2,7 +2,7 @@ import './admin.css';
 import AdminTabs from './AdminTabs.jsx';
 
 export default function UserRolesMatrixSample({
-  users, roles, search, setSearch, loading, error, saving, handleToggle, isAssigned, reload,
+  users, roles, search, setSearch, loading, error, saving, handleToggle, handleActivate, isAssigned, reload,
   newRoleName, setNewRoleName, creatingRole, createRole
 }) {
   return (
@@ -63,6 +63,21 @@ export default function UserRolesMatrixSample({
                       <td className="xeplr-admin-sticky-col xeplr-admin-user-cell">
                         <div className="xeplr-admin-user-name">{user.name || '—'}</div>
                         <div className="xeplr-admin-user-email">{user.email}</div>
+                        {user.isActivated === false && user.invitePending && (
+                          <div className="xeplr-admin-user-pending">
+                            <span className="xeplr-admin-pending-badge">Invited</span>
+                          </div>
+                        )}
+                        {user.isActivated === false && !user.invitePending && handleActivate && (
+                          <div className="xeplr-admin-user-pending">
+                            <span className="xeplr-admin-pending-badge">Not activated</span>
+                            <button type="button" className="xeplr-admin-btn-link"
+                              disabled={!!saving[user.id + ':activate']}
+                              onClick={function() { handleActivate(user.id); }}>
+                              {saving[user.id + ':activate'] ? 'Activating…' : 'Activate'}
+                            </button>
+                          </div>
+                        )}
                       </td>
                       {roles.map(function(role) {
                         var assigned = isAssigned(user, role.id);

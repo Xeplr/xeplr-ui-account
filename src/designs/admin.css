@@ -288,6 +288,36 @@
   color: var(--xeplr-text-muted);
 }
 
+/* An account that has not been activated yet, with the admin's way to do it. */
+.xeplr-admin-user-pending {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.xeplr-admin-pending-badge {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--xeplr-warning-bg);
+  color: var(--xeplr-warning);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.xeplr-admin-btn-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--xeplr-accent);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.xeplr-admin-btn-link:hover { text-decoration: underline; }
+.xeplr-admin-btn-link:disabled { color: var(--xeplr-text-muted); cursor: default; text-decoration: none; }
+
 .xeplr-admin-item-name {
   font-weight: 500;
 }

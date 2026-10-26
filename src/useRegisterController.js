@@ -21,7 +21,7 @@ export function useRegisterController(options = {}) {
     setLoading(true);
     try {
       const result = await registerUser(form);
-      const message = 'Registration successful. Please wait, someone will activate you.';
+      const message = 'Account created. Check your email for the link to activate it.';
       setSuccess(message);
       raiseSnackbar(message, { design: 'success' });
       setForm({ name: '', email: '', phoneNumber: '', password: '' });

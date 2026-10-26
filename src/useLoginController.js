@@ -39,7 +39,9 @@ export function useLoginController(options = {}) {
 
       onSuccess(result);
     } catch (err) {
-      if (err.message === 'Please wait, someone will activate you.') {
+      // The code, not the wording. The sentence is the older server's, kept so
+      // this page still works against an @xeplr/auth that predates the code.
+      if ((err.status === 403 && err.code === 'NOT_ACTIVATED') || err.message === 'Please wait, someone will activate you.') {
         navigate(notActivatedPath);
       } else {
         setError(err.message);
