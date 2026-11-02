@@ -260,6 +260,28 @@ The settings menu lists `settingsOverrides`, then **Profile** and **Change Passw
 
 The drawer toggles by clicking its logo, has a search box when expanded, and its expanded width is resizable by dragging or with the keyboard (arrows, Home/End, Enter or double-click to reset): 180–480px, default 240, remembered per browser in `localStorage` (`xeplr-nav-drawer-width`).
 
+### On a phone
+
+Below **640px wide** the drawer changes shape, because a 48px rail is an eighth of a phone's screen gone for good:
+
+- **Closed, it is a bar across the top**, `--xeplr-nav-bar-height` tall (52px): the logo and a ☰ menu button on the left, the bell and settings on the right. Settings opens downward from it.
+- **Open, it is a sheet over the page** — `min(85vw, 320px)` wide, full height, over a backdrop. Tapping the backdrop closes it, and so does picking a page (otherwise the page you asked for opens hidden under the menu). There is no resize handle.
+- With `floatingSettings`, the bell and settings sit on the bar.
+- The top bar (no drawer) keeps its logo and controls at their own size and lets the middle scroll.
+
+**The page has to make room, as it does for the rail.** On a desktop the app pads its left edge by the rail's 48px; on a phone it pads its **top** by the bar instead:
+
+```css
+.app { padding-left: 48px; }
+@media (max-width: 640px) {
+  .app { padding-left: 0; padding-top: var(--xeplr-nav-bar-height); }
+}
+```
+
+Apps made by `@xeplr/cli` (0.3.6 and later) do this in `ui/src/index.css`; an older app needs those lines added. Without them a phone's first 52px of every page sit under the bar.
+
+Nothing changes above 640px.
+
 ## Multi-tenancy
 
 ```js
@@ -447,6 +469,7 @@ src/
   pages.jsx                ─ controller + design, per screen; NavPage
   authRoutes.jsx           ─ authRoutes, authPath
   designs/                 ─ the *Sample designs, LoginDesigns.jsx + LoginForm.jsx + login.css, nav parts, theme.css, auth.css, admin.css, nav.css
+dev/                       ─ the stand-in app for `npm run dev` and the phone check (not published)
 ```
 
 ## Tests
@@ -454,6 +477,13 @@ src/
 ```sh
 npm test        # node --test test/*.test.js
 ```
+
+```sh
+npx playwright install chromium-headless-shell   # once
+npm run test:phone
+```
+
+`test/phone.check.js` opens the nav's dev app (`dev/`, also `npm run dev` on http://localhost:19008) in a real browser at 360, 390 and 430px wide, signed in from `localStorage` with `/auth/api/me` answered in the browser the way `@xeplr/auth` would. It checks that the closed drawer is a bar across the top with the page starting below it; that menu, bell and settings are 44px targets on screen; that settings opens downward on screen; that the open menu is a sheet over a backdrop; that picking a page goes there **and** closes the menu, and tapping beside it closes it; and that the page never scrolls sideways. At 1280px it checks the rail is still 48px down the left. It needs a browser and starts a dev server, so it is not part of `npm test`; run it before releasing a change to how the nav is drawn.
 
 ## License
 

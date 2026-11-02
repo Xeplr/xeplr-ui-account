@@ -33,8 +33,14 @@ function bucketItems(items) {
   return { ungrouped: ungrouped, groupOrder: groupOrder, groups: groups };
 }
 
+// A phone: below this the drawer is a bar across the top, and opening it lays
+// the menu over the page (nav.css). Same number as the stylesheet's.
+function isPhone() {
+  return typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+}
+
 function NavDrawer({
-  drawerOpen, toggleDrawer, drawerItems, expandedLogo, logo, drawerPromo,
+  drawerOpen, toggleDrawer, closeDrawer, drawerItems, expandedLogo, logo, drawerPromo,
   user, accountItems, notifications, accountOpen, toggleAccount, closeAccount, accountRef, logout,
   hideFooterIcons,
   drawerWidth, drawerResizing, startDrawerResize, resetDrawerWidth, nudgeDrawerWidth, drawerWidthBounds
@@ -91,7 +97,12 @@ function NavDrawer({
         type="button"
         className={'xeplr-nav-drawer-link' + (badge ? ' xeplr-nav-drawer-link-badged' : '') + (current ? ' is-current' : '')}
         aria-current={current ? 'page' : undefined}
-        onClick={item.clickHandler}
+        // On a phone the open menu covers the page, so going somewhere closes
+        // it — or the page you asked for opens hidden underneath.
+        onClick={function(e) {
+          if (item.clickHandler) item.clickHandler(e);
+          if (drawerOpen && closeDrawer && isPhone()) closeDrawer();
+        }}
         // The count belongs in the tooltip too — the collapsed dot says
         // "something", and the hover has to say how many.
         title={badge ? (item.label || item.name) + ' (' + badge + ')' : (item.label || item.name)}
@@ -109,16 +120,21 @@ function NavDrawer({
   }
 
   return (
+    <>
+    {/* Only drawn on a phone (nav.css): the open menu is over the page, and a
+        tap beside it closes it. */}
+    {drawerOpen && <div className="xeplr-nav-drawer-backdrop" onClick={toggleDrawer} aria-hidden="true" />}
     <aside
       className={
         'xeplr-nav-drawer'
         + (drawerOpen ? ' xeplr-nav-drawer-expanded' : ' xeplr-nav-drawer-collapsed')
         + (drawerResizing ? ' xeplr-nav-drawer-resizing' : '')
       }
-      /* Inline width ONLY when expanded — collapsed is the fixed icon rail and
-         nav.css keeps owning that number. Inline because it changes per
-         pointermove; a stylesheet cannot express a live drag. */
-      style={drawerOpen && drawerWidth ? { width: drawerWidth + 'px' } : undefined}
+      /* The dragged width ONLY when expanded — collapsed is the fixed icon rail
+         and nav.css keeps owning that number. Inline because it changes per
+         pointermove; a stylesheet cannot express a live drag. A variable, not a
+         width, so on a phone nav.css can size the menu to the screen instead. */
+      style={drawerOpen && drawerWidth ? { '--xeplr-nav-drawer-w': drawerWidth + 'px' } : undefined}
     >
       <button
         type="button"
@@ -137,6 +153,9 @@ function NavDrawer({
         {drawerOpen && expandedLogo
           ? <span className="xeplr-nav-drawer-collapse" aria-hidden="true">«</span>
           : (logo && <img src={logo} alt="" className="xeplr-nav-drawer-logo" />)}
+        {/* Three lines beside the logo, shown only on a phone's top bar: there
+            the logo alone does not say "this opens the menu". */}
+        {!drawerOpen && <span className="xeplr-nav-drawer-burger" aria-hidden="true"><span /><span /><span /></span>}
       </button>
       {/* Own row below the toggle, not squeezed inline beside it — a stacked
           lockup needs real height to stay legible, not the icon's 22px. */}
@@ -202,6 +221,7 @@ function NavDrawer({
         />
       )}
     </aside>
+    </>
   );
 }
 
