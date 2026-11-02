@@ -1,0 +1,9 @@
+/* Stand-in host chrome only — not part of the package. Reserves the room the
+   nav takes, as the generated app's index.css does. */
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+.dev-app { min-height: 100vh; padding-left: 48px; background: var(--xeplr-bg-primary); color: var(--xeplr-text-primary); box-sizing: border-box; }
+.dev-main { padding: 24px 28px; }
+@media (max-width: 640px) {
+  .dev-app { padding-left: 0; padding-top: var(--xeplr-nav-bar-height); }
+  .dev-main { padding: 16px 12px; }
+}

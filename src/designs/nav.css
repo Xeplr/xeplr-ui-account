@@ -231,10 +231,10 @@
    one the page does not get. Apps reserve the same number (--app-rail-width
    in the generated app). */
 .xeplr-nav-drawer-collapsed { width: 48px; }
-/* The 240px is the DEFAULT only — NavDrawer sets an inline width from the
-   remembered drag, which outranks this. Kept here so the drawer still has a
-   sane width if the controller's stored value is unreadable. */
-.xeplr-nav-drawer-expanded { width: 240px; padding: 16px; }
+/* The 240px is the DEFAULT only — NavDrawer sets --xeplr-nav-drawer-w from
+   the remembered drag. Kept here so the drawer still has a sane width if the
+   controller's stored value is unreadable. */
+.xeplr-nav-drawer-expanded { width: var(--xeplr-nav-drawer-w, 240px); padding: 16px; }
 
 /* Mid-drag the width changes every pointermove, and a 0.15s transition on it
    means the edge chases the cursor instead of tracking it. Kill it for the
@@ -522,4 +522,60 @@ body.xeplr-nav-resizing * { cursor: col-resize !important; }
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* ── on a phone ──────────────────────────────────────────────────────────
+   A 48px rail down the left of a 360px screen is an eighth of the page,
+   gone for good. So below 640px:
+
+   - COLLAPSED, the drawer is a bar across the top, --xeplr-nav-bar-height
+     tall: the menu button on the left, notifications and settings on the
+     right. The page reserves that height at its top instead of the rail's
+     width at its left (the generated app does, in index.css).
+   - OPEN, it is a sheet over the page, most of the screen wide, over a
+     backdrop that closes it; picking a page closes it too (NavDrawer).
+   - The top bar (no drawer) keeps logo and controls at their own size and
+     lets the middle scroll.
+
+   Nothing here applies above 640px. */
+:root { --xeplr-nav-bar-height: 52px; }
+.xeplr-nav-drawer-backdrop, .xeplr-nav-drawer-burger { display: none; }
+
+@media (max-width: 640px) {
+  .xeplr-nav-drawer-collapsed {
+    width: 100%; height: var(--xeplr-nav-bar-height);
+    flex-direction: row; align-items: center; gap: 4px; padding: 0 8px;
+    border-right: none; border-bottom: 1px solid var(--xeplr-border-primary);
+    box-shadow: none;
+  }
+  .xeplr-nav-drawer-collapsed .xeplr-nav-drawer-toggle {
+    display: flex; align-items: center; gap: 10px; margin: 0; padding: 8px 10px; min-height: 44px; box-sizing: border-box;
+  }
+  .xeplr-nav-drawer-collapsed .xeplr-nav-drawer-burger { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 18px; }
+  .xeplr-nav-drawer-burger > span { display: block; height: 2px; border-radius: 1px; background: var(--xeplr-text-secondary); }
+  .xeplr-nav-drawer-collapsed .xeplr-nav-drawer-links { display: none; }
+  .xeplr-nav-drawer-collapsed .xeplr-nav-drawer-footer {
+    flex-direction: row; gap: 4px; margin: 0 0 0 auto; padding: 0; border-top: none;
+  }
+  .xeplr-nav-drawer-collapsed .xeplr-nav-bell,
+  .xeplr-nav-drawer-collapsed .xeplr-nav-settings-trigger { width: 44px; height: 44px; }
+  /* From a bar at the top the menu opens downward, against the right edge. */
+  .xeplr-nav-drawer-collapsed .xeplr-nav-account-menu-top { top: calc(100% + 8px); bottom: auto; left: auto; right: 0; }
+
+  /* No width animation here: from a full-width bar to a sheet it would sweep
+     across the page instead of opening. */
+  .xeplr-nav-drawer { transition: none; }
+  .xeplr-nav-drawer-expanded { width: min(85vw, 320px); }
+  .xeplr-nav-drawer-expanded .xeplr-nav-drawer-link { min-height: 44px; }
+  .xeplr-nav-drawer-resize { display: none; }
+  .xeplr-nav-drawer-backdrop {
+    display: block; position: fixed; inset: 0; z-index: 499;
+    background: var(--xeplr-bg-overlay, rgba(20, 20, 18, .45));
+  }
+  /* The floating bell and settings ride on the top bar, not under it. */
+  .xeplr-nav-floating { top: calc((var(--xeplr-nav-bar-height) - 44px) / 2); right: 8px; z-index: 510; }
+
+  .xeplr-nav-top { gap: 8px; padding: 8px 12px; }
+  .xeplr-nav-left, .xeplr-nav-right { flex: none; }
+  .xeplr-nav-middle { overflow-x: auto; }
 }
