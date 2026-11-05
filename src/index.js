@@ -1,5 +1,5 @@
 // API client
-export { configure, setSessionExpiredHandler, registerUser, loginUser, activateAccount, resendActivation, previewInvite, acceptInvite, forgotPassword, resetPassword, changePassword, getMe, getProfile, updateProfile, uploadAvatar, logoutUser, authFetch } from './api.js';
+export { configure, setSessionExpiredHandler, registerUser, loginUser, activateAccount, resendActivation, previewInvite, acceptInvite, forgotPassword, resetPassword, changePassword, getMe, getProfile, updateProfile, uploadAvatar, logoutUser, authFetch, authFetchFile } from './api.js';
 
 // Token helpers
 export { getToken, setToken, getRefreshToken, setRefreshToken, getUser, setUser, clearAuth, isAuthenticated } from './token.js';

@@ -321,6 +321,31 @@ function absorbNewToken(res) {
  * path below is now only a fallback for a token past the whole tolerance window.
  */
 export async function authFetch(endpoint, options = {}) {
+  const { res, url } = await signedFetch(endpoint, options);
+  const data = await parseJsonResponse(res, { method: options.method || 'GET', url: url });
+  if (!res.ok) {
+    throw httpError(data, res, { method: options.method || 'GET', url: url });
+  }
+  return data;
+}
+
+/**
+ * A FILE behind sign-in, as a Blob — an attachment to show (<img> cannot send
+ * the token, so it is fetched and shown through URL.createObjectURL) or to
+ * save. Same headers, scope and refresh as authFetch; a refusal still answers
+ * in JSON, so it throws the same Error.
+ */
+export async function authFetchFile(endpoint, options = {}) {
+  const { res, url } = await signedFetch(endpoint, options);
+  if (!res.ok) {
+    const data = await parseJsonResponse(res, { method: options.method || 'GET', url: url }).catch(() => null);
+    throw httpError(data, res, { method: options.method || 'GET', url: url });
+  }
+  return res.blob();
+}
+
+/** The request with the token, the active scope and one refresh — the Response, unread. */
+async function signedFetch(endpoint, options) {
   const url = endpoint.startsWith('http') ? endpoint : `${getBaseUrl()}${endpoint}`;
 
   // A FormData body sets its own Content-Type, boundary and all. Declaring
@@ -360,12 +385,7 @@ export async function authFetch(endpoint, options = {}) {
       absorbNewToken(res);
     }
   }
-
-  const data = await parseJsonResponse(res, { method: options.method || 'GET', url: url });
-  if (!res.ok) {
-    throw httpError(data, res, { method: options.method || 'GET', url: url });
-  }
-  return data;
+  return { res, url };
 }
 
 /**
