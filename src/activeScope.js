@@ -1,4 +1,19 @@
+import { getUser } from './token.js';
+
 const STORAGE_PREFIX = 'xeplr:activeScope:';
+// Who set the active scope. A browser outlives a person: sign out, register
+// someone else, and the old company was still "open" — every request then
+// named a company the new person is not in. onLogin clears it on a change.
+const OWNER_KEY = 'xeplr:activeScope@owner';
+
+function currentUserId() {
+  try { const u = getUser(); return (u && u.id) || null; } catch (e) { return null; }
+}
+
+/** The user the active scope was set by, or null. */
+export function activeScopeOwner() {
+  try { return localStorage.getItem(OWNER_KEY); } catch (e) { return null; }
+}
 
 /**
  * Fired on window when a level's active value changes (a different id, or
@@ -42,6 +57,8 @@ export function setActiveScope(level, scope) {
   try {
     if (scope) localStorage.setItem(STORAGE_PREFIX + level, JSON.stringify(scope));
     else localStorage.removeItem(STORAGE_PREFIX + level);
+    const owner = currentUserId();
+    if (scope && owner) localStorage.setItem(OWNER_KEY, owner);
   } catch (e) {}
   if (before !== ((scope && scope.id) || null)) announce(level);
 }
@@ -69,10 +86,17 @@ const LAST_STORAGE_PREFIX = 'xeplr:lastScope:';
  * bypassing whatever cleared the active scope. A caller decides whether and
  * how to re-verify eligibility before trusting this; auth doesn't.
  */
+//
+// It is THE SIGNED-IN USER'S last value: stored with who set it, and given back
+// only to them. Unowned (older) entries are given to nobody — resuming someone
+// else's company is exactly what this must never do.
 export function getLastScope(level) {
   try {
     const raw = localStorage.getItem(LAST_STORAGE_PREFIX + level);
-    return raw ? JSON.parse(raw) : null;
+    const saved = raw ? JSON.parse(raw) : null;
+    const me = currentUserId();
+    if (!saved || !saved.owner || !me || saved.owner !== me) return null;
+    return saved.scope || null;
   } catch (e) {
     return null;
   }
@@ -80,7 +104,8 @@ export function getLastScope(level) {
 
 export function setLastScope(level, scope) {
   try {
-    if (scope) localStorage.setItem(LAST_STORAGE_PREFIX + level, JSON.stringify(scope));
+    const owner = currentUserId();
+    if (scope && owner) localStorage.setItem(LAST_STORAGE_PREFIX + level, JSON.stringify({ owner, scope }));
     else localStorage.removeItem(LAST_STORAGE_PREFIX + level);
   } catch (e) {}
 }
@@ -100,6 +125,7 @@ export function clearActiveScope(level) {
       if (key && key.indexOf(STORAGE_PREFIX) === 0) keys.push(key);
     }
     keys.forEach(function(key) { localStorage.removeItem(key); });
+    localStorage.removeItem(OWNER_KEY);
     keys.forEach(function(key) { announce(key.slice(STORAGE_PREFIX.length)); });
   } catch (e) {}
 }

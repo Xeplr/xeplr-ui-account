@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { raiseSnackbar } from '@xeplr/ui-utils';
 import { getToken, getUser } from './token.js';
 import { logoutUser, getMe, setSessionExpiredHandler } from './api.js';
-import { SCOPE_CHANGED_EVENT } from './activeScope.js';
+import { SCOPE_CHANGED_EVENT, activeScopeOwner, clearActiveScope } from './activeScope.js';
 
 const AccessContext = createContext(null);
 
@@ -55,6 +55,9 @@ export function AccessProvider({ children }) {
 
   function onLogin(result) {
     // result = { accessToken, refreshToken, user, access } from login API
+    // Someone else's company left open in this browser is not this person's.
+    const owner = activeScopeOwner();
+    if (owner && result.user && owner !== result.user.id) clearActiveScope();
     setAuthenticated(true);
     setUser(result.user);
     setAccess(result.access);

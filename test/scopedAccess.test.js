@@ -29,7 +29,7 @@ global.fetch = async (url, options) => {
 
 const { getMe, configure } = await import('../src/api.js');
 const { registerMTs } = await import('../src/mt.js');
-const { setActiveScope, clearActiveScope, SCOPE_CHANGED_EVENT } = await import('../src/activeScope.js');
+const { setActiveScope, getActiveScope, clearActiveScope, SCOPE_CHANGED_EVENT } = await import('../src/activeScope.js');
 configure({ baseUrl: '' });
 registerMTs({ l1: { name: 'companyId', header: 'x-company-id' }, l2: { name: 'workspaceId', header: 'x-workspace-id' } });
 
@@ -53,10 +53,13 @@ test('a company that is not theirs: their own roles, not a failure', async () =>
     const me = await getMe();
     assert.deepEqual(me.access.roles, ['Viewer']);
     assert.equal(sent.at(-1)['x-verify-tenant'], undefined, 'asked again without the company');
+    assert.equal(getActiveScope('l1'), null, 'and the company is no longer open');
   } finally { refuseTenant = false; }
 });
 
 test('a change of company is announced; the same company again is not', () => {
+  setActiveScope('l1', { id: 'own' });
+  setActiveScope('l2', { id: 'w1' });
   const heard = [];
   const listen = (e) => heard.push(e.detail.level);
   target.addEventListener(SCOPE_CHANGED_EVENT, listen);

@@ -12,7 +12,7 @@ export { registerMTs, getMtConfig } from './mt.js';
 // Active scope (e.g. company/workspace), keyed by MT level (l1, l2, ...) — a
 // bare, app-interpreted value per level, attached to every authFetch call as
 // that level's configured header. See activeScope.js.
-export { getActiveScope, setActiveScope, clearActiveScope, getLastScope, setLastScope, activeTenants, SCOPE_CHANGED_EVENT } from './activeScope.js';
+export { getActiveScope, setActiveScope, clearActiveScope, getLastScope, setLastScope, activeTenants, activeScopeOwner, SCOPE_CHANGED_EVENT } from './activeScope.js';
 
 // Where to send the user once a redirect-driven gate (auth, or an app's own
 // gate) resolves — e.g. back to the exact dashboard a deep link pointed at,
