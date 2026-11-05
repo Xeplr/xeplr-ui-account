@@ -365,10 +365,11 @@ async function signedFetch(endpoint, options) {
   // Attach the app's active scope (e.g. company/workspace) per configured MT
   // level — see mt.js's registerMTs() and activeScope.js.
   const mtConfig = getMtConfig();
+  const sentScope = {};
   Object.keys(mtConfig.slots).forEach((level) => {
     const slot = mtConfig.slots[level];
     const scope = getActiveScope(level);
-    if (scope && scope.id) headers[slot.header] = scope.id;
+    if (scope && scope.id) { headers[slot.header] = scope.id; sentScope[level] = slot.header; }
   });
 
   let res = await fetch(url, { ...options, headers });
@@ -383,6 +384,28 @@ async function signedFetch(endpoint, options) {
       headers['Authorization'] = `Bearer ${getToken()}`;
       res = await fetch(url, { ...options, headers });
       absorbNewToken(res);
+    }
+  }
+
+  // NOT A MEMBER of the company/workspace this browser has open — a stale pick,
+  // a removed membership, another person's company left behind. Kept, it made
+  // every request fail, the company picker's own list included, with no way
+  // out. So it is dropped (the company and its workspace, or just the
+  // workspace), which tells the app (SCOPE_CHANGED_EVENT) to send the person
+  // to pick one; a read is asked again without it. A write is not retried: it
+  // was meant for that company, not for none.
+  const named = Object.keys(sentScope);
+  if (res.status === 403 && named.length) {
+    const body = await res.clone().json().catch(() => null);
+    if (body && body.code === 'NOT_A_MEMBER') {
+      const m = /\b(l[1-4])\b/.exec(body.error || '');
+      const level = m ? m[1] : 'l1';
+      if (level === 'l1') clearActiveScope(); else clearActiveScope(level);
+      if (!options.method || options.method === 'GET') {
+        named.forEach((lvl) => { if (lvl === level || level === 'l1') delete headers[sentScope[lvl]]; });
+        res = await fetch(url, { ...options, headers });
+        absorbNewToken(res);
+      }
     }
   }
   return { res, url };

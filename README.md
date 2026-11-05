@@ -144,6 +144,10 @@ A role can be held in one company or workspace only (`@xeplr/auth` ≥ 1.5): who
 - If auth answers `NOT_A_MEMBER` (a stale pick, a removed membership), `getMe()` asks again without the company and answers with the user's own roles — not an error and not an empty nav, so they can still pick another company.
 - `setActiveScope()` / `clearActiveScope()` fire `SCOPE_CHANGED_EVENT` on `window` when a level's **id** changes (the same id with a new name fires nothing). `AccessProvider` listens and calls `refreshAccess()` once for changes made together — picking a company and then its workspace is one request. When answers arrive out of order, only the latest question is applied.
 
+**A company that is not theirs never traps anyone.** When any `authFetch` that named the active scope is answered `403 NOT_A_MEMBER`, the scope is dropped — the company and its workspace for an `l1` refusal, the workspace alone for `l2` — which fires `SCOPE_CHANGED_EVENT` so the app can send the person to pick a company. A read (GET) is asked again without it; a write is not retried (it was meant for that company), but the next one goes out clean. And on sign-in, a scope left open by a different user (`activeScopeOwner()`) is cleared.
+
+**The last scope is the signed-in user's.** `setLastScope()` stores who set it; `getLastScope()` gives it back only to that user, and returns `null` for an entry written before 1.5.1 (owner unknown). A browser shared by two accounts never resumes one's company for the other.
+
 Nothing to wire in an app that already sets the active scope through `setActiveScope()`. Against an auth older than 1.5 the header is ignored and the answer is the user's own roles, as before.
 
 **Call `refreshAccess()` after anything that changes access** — a role granted, a menu renamed — so the signed-in UI shows it. The admin screens in this package do not call it themselves.
@@ -322,7 +326,8 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 |---|---|
 | `getActiveScope(level)` / `setActiveScope(level, scope)` | the active value per level, in `localStorage` (`xeplr:activeScope:<level>`); `authFetch` sends its `id`. `null` removes it. |
 | `clearActiveScope(level?)` | one level, or every level when omitted (`logout` does this) |
-| `getLastScope(level)` / `setLastScope(level, scope)` | the last value per level (`xeplr:lastScope:<level>`), **not** cleared by `clearActiveScope` or logout — so an app can offer to resume after signing in. Re-check eligibility before trusting it. |
+| `getLastScope(level)` / `setLastScope(level, scope)` | the signed-in user's last value per level (`xeplr:lastScope:<level>`, stored with its owner), **not** cleared by `clearActiveScope` or logout — so an app can offer to resume after signing in. Given back only to the user who set it. |
+| `activeScopeOwner()` | the user id the active scope was set by, or `null` |
 | `activeTenants(levels)` | the active scope as `{ l1: '<id>', … }` for those levels, or `null` — what `getMe()` sends as `x-verify-tenant` |
 | `SCOPE_CHANGED_EVENT` | the `window` event fired when a level's active id changes, `{ detail: { level } }` |
 | `getMtConfig()` | a copy of the registered slots |
