@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { raiseSnackbar } from '@xeplr/ui-utils';
 import { getToken, getUser } from './token.js';
 import { logoutUser, getMe, setSessionExpiredHandler } from './api.js';
+import { SCOPE_CHANGED_EVENT } from './activeScope.js';
 
 const AccessContext = createContext(null);
 
@@ -87,9 +88,14 @@ export function AccessProvider({ children }) {
    * for "it worked" — there is nothing useful for a nav bar to do about a
    * failed refresh except carry on with what it had.
    */
+  const askedRef = useRef(0);
   async function refreshAccess() {
+    // Only the latest question is answered: switching company and then
+    // workspace asks twice, and the first answer arriving last must not win.
+    const asked = ++askedRef.current;
     try {
       const result = await getMe();
+      if (asked !== askedRef.current) return null;
       if (!result) return null;
       // REPLACED, not merged. Access is the whole answer to "what may this
       // person see", and merging would keep a page that has just been revoked
@@ -135,6 +141,25 @@ export function AccessProvider({ children }) {
     if (refreshedRef.current) return;
     refreshedRef.current = true;
     refreshAccess();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authenticated]);
+
+  // ── and again when the open company or workspace changes ─────────────
+  //
+  // A role can be held in one company only: whoever creates a company is its
+  // CompanyAdmin there and a Viewer elsewhere. So the menus belong to the
+  // company that is open, and picking another one has to ask again. Picking a
+  // company and then its workspace happens in one go; one request, not two.
+  useEffect(() => {
+    if (!authenticated || typeof window === 'undefined') return undefined;
+    let timer = null;
+    function onScope() {
+      clearTimeout(timer);
+      // Logging out clears the scope too; by then there is no token to ask with.
+      timer = setTimeout(() => { if (getToken()) refreshAccess(); }, 0);
+    }
+    window.addEventListener(SCOPE_CHANGED_EVENT, onScope);
+    return () => { clearTimeout(timer); window.removeEventListener(SCOPE_CHANGED_EVENT, onScope); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated]);
 

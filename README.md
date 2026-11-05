@@ -136,6 +136,16 @@ const { user, access, authenticated, hasMenu, refreshAccess } = useAccess()
 | `logout()` | clears tokens, access and active scope, tells the server (best effort) |
 | `setAccess(access)` | replace access by hand |
 
+### Access follows the open company
+
+A role can be held in one company or workspace only (`@xeplr/auth` ≥ 1.5): whoever creates a company is its CompanyAdmin **there** and keeps their own role (often Viewer) everywhere else. So access is asked for as the user is in the company and workspace they have open:
+
+- `getMe()` sends `x-verify-tenant: { "l1": "<company>", "l2": "<workspace>" }` from the active scope, for the levels given to `registerMTs()`. With nothing open it asks for the user's own roles alone.
+- If auth answers `NOT_A_MEMBER` (a stale pick, a removed membership), `getMe()` asks again without the company and answers with the user's own roles — not an error and not an empty nav, so they can still pick another company.
+- `setActiveScope()` / `clearActiveScope()` fire `SCOPE_CHANGED_EVENT` on `window` when a level's **id** changes (the same id with a new name fires nothing). `AccessProvider` listens and calls `refreshAccess()` once for changes made together — picking a company and then its workspace is one request. When answers arrive out of order, only the latest question is applied.
+
+Nothing to wire in an app that already sets the active scope through `setActiveScope()`. Against an auth older than 1.5 the header is ignored and the answer is the user's own roles, as before.
+
 **Call `refreshAccess()` after anything that changes access** — a role granted, a menu renamed — so the signed-in UI shows it. The admin screens in this package do not call it themselves.
 
 `useAccess()` returns `null` outside a provider (safe in optional places); `useAccessStrict()` throws. `AccessProvider` also registers `logout` as the handler `authFetch` calls when the session is dead, so a failed refresh sends `ProtectedRoute` to login instead of leaving a stale `authenticated: true`.
@@ -313,6 +323,8 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 | `getActiveScope(level)` / `setActiveScope(level, scope)` | the active value per level, in `localStorage` (`xeplr:activeScope:<level>`); `authFetch` sends its `id`. `null` removes it. |
 | `clearActiveScope(level?)` | one level, or every level when omitted (`logout` does this) |
 | `getLastScope(level)` / `setLastScope(level, scope)` | the last value per level (`xeplr:lastScope:<level>`), **not** cleared by `clearActiveScope` or logout — so an app can offer to resume after signing in. Re-check eligibility before trusting it. |
+| `activeTenants(levels)` | the active scope as `{ l1: '<id>', … }` for those levels, or `null` — what `getMe()` sends as `x-verify-tenant` |
+| `SCOPE_CHANGED_EVENT` | the `window` event fired when a level's active id changes, `{ detail: { level } }` |
 | `getMtConfig()` | a copy of the registered slots |
 
 ### Returning after a gate
@@ -436,7 +448,7 @@ Unauthenticated calls go straight to `fetch`; the rest use `authFetch`. All reso
 | `forgotPassword({ email })` | `POST /auth/api/forgot-password` |
 | `resetPassword({ token, newPassword })` | `POST /auth/api/reset-password` |
 | `changePassword({ currentPassword, newPassword })` | `POST /auth/api/change-password` (auth) |
-| `getMe()` | `GET /auth/api/me` → `{ user, access }` (auth) |
+| `getMe()` | `GET /auth/api/me` → `{ user, access }` (auth), asked for the open company/workspace — see [Access follows the open company](#access-follows-the-open-company) |
 | `getProfile()` / `updateProfile(fields)` | `GET` / `PUT /auth/api/profile` (auth) |
 | `uploadAvatar(file)` | `POST /auth/api/profile/avatar`, multipart. Sends the token only — no scope headers, no refresh retry. |
 | `logoutUser()` | clears stored auth and active scope, then `POST /auth/api/logout` without waiting |

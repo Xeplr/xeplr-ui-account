@@ -1,5 +1,5 @@
 import { getToken, setToken, getRefreshToken, setRefreshToken, clearAuth } from './token.js';
-import { getActiveScope, clearActiveScope } from './activeScope.js';
+import { getActiveScope, clearActiveScope, activeTenants } from './activeScope.js';
 import { getMtConfig } from './mt.js';
 
 let _baseUrl = '';
@@ -481,8 +481,22 @@ export function changePassword({ currentPassword, newPassword }) {
  * away — none of it reached a signed-in browser until that person happened to
  * log out, which could be weeks. See AccessProvider.
  */
-export function getMe() {
-  return authFetch('/auth/api/me');
+export async function getMe() {
+  // Asked as the user is in the company/workspace they have open: a role held
+  // there (the creator of a company is its CompanyAdmin) brings its menus and
+  // pages. With nothing open, the user's own roles alone.
+  const tenants = activeTenants(Object.keys(getMtConfig().slots));
+  if (!tenants) return authFetch('/auth/api/me');
+  try {
+    return await authFetch('/auth/api/me', { headers: { 'x-verify-tenant': JSON.stringify(tenants) } });
+  } catch (err) {
+    // NOT_A_MEMBER: the open company is not theirs (a stale pick, a removed
+    // membership). Answer with their own roles rather than fail — the app's
+    // own calls are refused there anyway, and an empty nav would leave them no
+    // way to pick another company.
+    if (err && err.code === 'NOT_A_MEMBER') return authFetch('/auth/api/me');
+    throw err;
+  }
 }
 
 export function getProfile() {
