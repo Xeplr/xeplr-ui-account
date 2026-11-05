@@ -194,6 +194,17 @@ On failure it **throws an `Error`**:
 
 Every reply must be JSON: an empty body (a `204`, say) throws too. Each failure is also logged with `console.error`, naming the request.
 
+### `authFetchFile` — a file behind sign-in
+
+```js
+import { authFetchFile } from '@xeplr/ui-account'
+
+const blob = await authFetchFile('/api/factory/files/orders/k3v__photo.jpg')
+img.src = URL.createObjectURL(blob)
+```
+
+An `<img src>` or a link cannot send the token, so a protected attachment is fetched and shown from a Blob. Same token, active-scope headers and one refresh as `authFetch`; it returns the **Blob** instead of parsed JSON. A refusal (404, 403…) is JSON from the server, so it throws the same `Error` as above. `@xeplr/ui-factory`'s file field uses it for picture previews (pass it as `fetchFile` to `createFactoryApi`).
+
 `configure(baseUrl, { onSessionExpired })` sets the base URL and optionally a handler; `setSessionExpiredHandler(fn)` sets the handler on its own (`AccessProvider` does this for you).
 
 ## Menu keys and labels
