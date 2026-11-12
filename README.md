@@ -289,6 +289,7 @@ Exactly one of two things renders: with at least one visible drawer item, the **
 | `drawerItems` | drawer | `[{ key, icon, clickHandler, path?, active?, group?, badge? }]` — a non-empty visible list turns the drawer on |
 | `settingsOverrides` | both | `[{ key, path }]`, shown above the built-in items in the settings menu |
 | `notifications` | both | `{ count, onClick }` — the bell shows only when this is given **and** `access.menus` contains `Notifications`; a count above 9 shows `9+` |
+| `push` | both | `{ apiBase, workerUrl? }` — **Notifications on this device** in the settings menu: where the app mounted [`@xeplr/push`](https://www.npmjs.com/package/@xeplr/push)'s routes (e.g. `'/api/push'`). Left out: no switch. See [Push notifications](#push-notifications-on-this-device) |
 | `logo` | both | image URL: the top bar's logo, the collapsed rail's toggle |
 | `expandedLogo` | drawer | image URL shown when expanded |
 | `drawerPromo` | drawer | node shown under the links when expanded |
@@ -296,7 +297,32 @@ Exactly one of two things renders: with at least one visible drawer item, the **
 | `navMiddle` | top bar | node for the middle column (e.g. a company picker) |
 | `design` | top bar | your own top bar component (default `NavTopSample`) |
 
-The settings menu lists `settingsOverrides`, then **Profile** and **Change Password** when those keys are in `access.menus` (shown by their label, like every other item, and linking to `authPath('profile')` / `authPath('changePassword')`), then Logout.
+The settings menu lists `settingsOverrides`, then **Profile** and **Change Password** when those keys are in `access.menus` (shown by their label, like every other item, and linking to `authPath('profile')` / `authPath('changePassword')`), then **Notifications on this device** when `push` is given, then Logout.
+
+### Push notifications on this device
+
+A notification on the phone or computer even when the app is closed, sent by the app's API through [`@xeplr/push`](https://www.npmjs.com/package/@xeplr/push). This package is the browser side:
+
+1. **The service worker**, `sw/xeplr-push-sw.js`, shows each notification and opens the app on a tap (at the message's `url`, always a page of the app). It must be served at the site's **root**, since a worker only covers the pages under its own path. The Vite plugin does that, in dev and in the build:
+   ```js
+   // vite.config.js
+   import { xeplrPushWorker } from '@xeplr/ui-account/vite.js'
+   export default defineConfig({ plugins: [react(), xeplrPushWorker()] })
+   ```
+   An icon goes in its address: `push={{ apiBase: '/api/push', workerUrl: '/xeplr-push-sw.js?icon=/icons/icon-192.png' }}`.
+2. **The switch.** `<NavPage push={{ apiBase: '/api/push' }} />` adds **Notifications on this device** to the settings menu. Switching it on asks the person's permission (a phone only allows that question after a tap) and registers the device with the server. It shows what applies instead of the switch:
+
+   | state | shown |
+   |---|---|
+   | `on` / `off` | the switch |
+   | `install` | an iPhone or iPad in a Safari tab: "add this app to your Home Screen first" (iOS 16.4+, Home Screen app only) |
+   | `blocked` | notifications blocked: allow them in the browser or phone settings |
+   | `unsupported` | this browser cannot show notifications |
+   | `unavailable` | the server has no push keys: nothing is shown at all |
+
+3. **Signing out** switches the device off (`forgetPushDevice`, called by Logout before the token is cleared), so a shared phone stops getting the last person's notifications.
+
+The model is `push.js` (`pushSupport`, `pushStatus`, `enablePush`, `disablePush`, `forgetPushDevice`, `keyBytes`), the controller is `usePushController(push)`, and the design is `PushToggle`. Use them directly to put the switch somewhere else.
 
 The drawer toggles by clicking its logo, has a search box when expanded, and its expanded width is resizable by dragging or with the keyboard (arrows, Home/End, Enter or double-click to reset): 180–480px, default 240, remembered per browser in `localStorage` (`xeplr-nav-drawer-width`).
 
@@ -500,6 +526,7 @@ src/
   token.js                 ─ token and user storage
   mt.js, activeScope.js    ─ multi-tenant levels and the scope per level
   returnTo.js              ─ where to go after a gate
+  push.js                  ─ push notifications on this device: support, state, on / off, sign-out
   menuLabels.js            ─ labelMenuItems
   adminPaths.js            ─ ADMIN_PAGES: the admin pages, their labels and paths
   accessStates.js          ─ enabled / disabled / hidden / inherit: cell states and what a change sends
@@ -511,7 +538,9 @@ src/
   validateDesign.js        ─ useDesignValidator and the *_RULES
   pages.jsx                ─ controller + design, per screen; NavPage
   authRoutes.jsx           ─ authRoutes, authPath
-  designs/                 ─ the *Sample designs, LoginDesigns.jsx + LoginForm.jsx + login.css, nav parts, theme.css, auth.css, admin.css, nav.css
+  designs/                 ─ the *Sample designs, LoginDesigns.jsx + LoginForm.jsx + login.css, nav parts (PushToggle too), theme.css, auth.css, admin.css, nav.css
+sw/xeplr-push-sw.js        ─ the push service worker, served at the app's root
+vite.js                    ─ xeplrPushWorker(): the Vite plugin that serves and builds it
 dev/                       ─ the stand-in app for `npm run dev` and the phone check (not published)
 ```
 

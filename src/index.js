@@ -33,6 +33,10 @@ export { useUserRolesController } from './useUserRolesController.js';
 export { useAccessMatrixController } from './useAccessMatrixController.js';
 export { useMasterSettingsController } from './useMasterSettingsController.js';
 export { useNavController } from './useNavController.js';
+export { usePushController } from './usePushController.js';
+
+// Push notifications on this device (server: @xeplr/push) — the model.
+export { pushSupport, pushStatus, enablePush, disablePush, forgetPushDevice, keyBytes, PUSH_STATES, PUSH_WORKER_PATH } from './push.js';
 
 // Theme
 export { ThemeProvider, useTheme, useThemeStrict, BUILT_IN_THEMES, DEFAULT_THEME } from './ThemeContext.jsx';
@@ -51,7 +55,7 @@ export { getMasterItems, saveMasterItem, deleteMasterItem, MASTER_TYPES } from '
 export { useDesignValidator, LOGIN_RULES, REGISTER_RULES, FORGOT_PASSWORD_RULES, RESET_PASSWORD_RULES, RESEND_ACTIVATION_RULES, ACCEPT_INVITE_RULES, CHANGE_PASSWORD_RULES, PROFILE_RULES, USER_ROLES_MATRIX_RULES, ACCESS_MATRIX_RULES, MASTER_SETTINGS_RULES, NAV_RULES } from './validateDesign.js';
 
 // Sample designs (use as reference or starting point)
-export { LoginSample, LoginDesign1, LoginDesign2, LoginDesign3, LoginDesign4, LoginDesign5, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ResendActivationSample, AcceptInviteSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, AccountMenu, NavDrawer, NavFloatingSettings, NotificationsBell } from './designs/index.js';
+export { LoginSample, LoginDesign1, LoginDesign2, LoginDesign3, LoginDesign4, LoginDesign5, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ResendActivationSample, AcceptInviteSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, AccountMenu, NavDrawer, NavFloatingSettings, NotificationsBell, PushToggle } from './designs/index.js';
 
 // Ready-made pages (controller + sample design wired together; each takes an optional `design` prop)
 export { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ResendActivationPage, AcceptInvitePage, ActivatePage, NotActivatedPage, ChangePasswordPage, ProfilePage, UserRolesPage, AccessMatrixPage, MasterSettingsPage, NavPage } from './pages.jsx';

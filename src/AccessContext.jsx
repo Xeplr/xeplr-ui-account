@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { raiseSnackbar } from '@xeplr/ui-utils';
 import { getToken, getUser } from './token.js';
 import { logoutUser, getMe, setSessionExpiredHandler } from './api.js';
+import { forgetPushDevice } from './push.js';
 import { SCOPE_CHANGED_EVENT, activeScopeOwner, clearActiveScope } from './activeScope.js';
 
 const AccessContext = createContext(null);
@@ -46,6 +47,8 @@ export function AccessProvider({ children }) {
   }
 
   function logout() {
+    // While the sign-in is still here: this device stops getting the person's notifications.
+    forgetPushDevice();
     logoutUser(); // clears localStorage + best-effort server-side cleanup
     localStorage.removeItem('access');
     setAccessState(null);
