@@ -219,6 +219,21 @@ img.src = URL.createObjectURL(blob)
 
 An `<img src>` or a link cannot send the token, so a protected attachment is fetched and shown from a Blob. Same token, active-scope headers and one refresh as `authFetch`; it returns the **Blob** instead of parsed JSON. A refusal (404, 403…) is JSON from the server, so it throws the same `Error` as above. `@xeplr/ui-factory`'s file field uses it for picture previews (pass it as `fetchFile` to `createFactoryApi`).
 
+### `authEventStream` — a live stream behind sign-in
+
+```js
+import { authEventStream } from '@xeplr/ui-account'
+
+const close = authEventStream('/api/monitor/services/xeplr-bi-api.service/logs/live', {
+  onOpen: () => setState('live'),
+  onEvent: ({ event, data }) => { if (event === 'message') add(JSON.parse(data)) },
+  onError: (err) => setError(err.message)      // refused (err.status), dropped, or ended
+})
+// later: close() — ends the request, so the server stops what it was reading for it
+```
+
+Server-sent events from a route that needs the token, which `EventSource` cannot send. Same token, active-scope headers and one refresh as `authFetch`; a refusal throws the same `Error`, to `onError`. Comment lines (`: still here`) are dropped. It does **not** reconnect by itself: what to do after a drop is the caller's choice. `parseEventStream(text)` is the frame parser on its own (`{ events, rest }`).
+
 `configure(baseUrl, { onSessionExpired })` sets the base URL and optionally a handler; `setSessionExpiredHandler(fn)` sets the handler on its own (`AccessProvider` does this for you).
 
 ## Menu keys and labels

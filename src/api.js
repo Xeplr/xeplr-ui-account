@@ -344,6 +344,76 @@ export async function authFetchFile(endpoint, options = {}) {
   return res.blob();
 }
 
+/**
+ * Server-sent events, split out of the text received so far: each event is
+ * `{ event, data }` (`event` is 'message' unless the server named one; `data`
+ * lines are joined with a newline). Comment lines (": still here") are
+ * dropped. `rest` is the unfinished tail, to be put in front of the next chunk.
+ */
+export function parseEventStream(text) {
+  const events = [];
+  const blocks = String(text).replace(/\r\n/g, '\n').split('\n\n');
+  const rest = blocks.pop();
+  blocks.forEach((block) => {
+    let event = 'message';
+    const data = [];
+    block.split('\n').forEach((line) => {
+      if (!line || line[0] === ':') return;
+      const i = line.indexOf(':');
+      const field = i < 0 ? line : line.slice(0, i);
+      const value = i < 0 ? '' : line.slice(i + 1).replace(/^ /, '');
+      if (field === 'event') event = value;
+      else if (field === 'data') data.push(value);
+    });
+    if (data.length || event !== 'message') events.push({ event, data: data.join('\n') });
+  });
+  return { events, rest };
+}
+
+/**
+ * A STREAM behind sign-in: server-sent events from a route that needs the
+ * token, which EventSource cannot send. Same token, active-scope headers and
+ * one refresh as authFetch. → close(), which ends the request, so the server
+ * stops whatever it was reading for it.
+ *
+ *   const close = authEventStream('/api/monitor/services/x/logs/live', {
+ *     onOpen: () => …,                         // the server answered 2xx
+ *     onEvent: ({ event, data }) => …,         // each event, as it arrives
+ *     onError: (err) => …                      // refused (err.status), dropped, or ended
+ *   })
+ *
+ * A refusal throws the same Error as authFetch, to onError. It does not
+ * reconnect by itself: what to do after a drop is the caller's choice.
+ */
+export function authEventStream(endpoint, { onEvent, onOpen, onError } = {}) {
+  const controller = new AbortController();
+  let closed = false;
+  (async () => {
+    try {
+      const { res, url } = await signedFetch(endpoint, { headers: { Accept: 'text/event-stream' }, signal: controller.signal });
+      if (!res.ok) {
+        const data = await parseJsonResponse(res, { method: 'GET', url: url }).catch(() => null);
+        throw httpError(data, res, { method: 'GET', url: url });
+      }
+      if (onOpen) onOpen();
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let rest = '';
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const out = parseEventStream(rest + decoder.decode(value, { stream: true }));
+        rest = out.rest;
+        out.events.forEach((e) => { if (onEvent) onEvent(e); });
+      }
+      if (!closed && onError) onError(new Error('The stream ended'));
+    } catch (err) {
+      if (!closed && onError) onError(err);
+    }
+  })();
+  return function close() { closed = true; controller.abort(); };
+}
+
 /** The request with the token, the active scope and one refresh — the Response, unread. */
 async function signedFetch(endpoint, options) {
   const url = endpoint.startsWith('http') ? endpoint : `${getBaseUrl()}${endpoint}`;
