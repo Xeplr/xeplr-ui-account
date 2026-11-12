@@ -183,6 +183,26 @@
 .xeplr-nav-account-logout { color: var(--xeplr-danger); }
 .xeplr-nav-account-divider { height: 1px; margin: 6px 0; background: var(--xeplr-border-secondary); }
 
+/* "Notifications on this device" (PushToggle.jsx) — a switch, not a link. */
+.xeplr-nav-push { padding: 8px 10px; }
+.xeplr-nav-push-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.xeplr-nav-push-label { font-size: 13px; color: var(--xeplr-text-primary); }
+.xeplr-nav-push-switch {
+  position: relative; flex: none; width: 36px; height: 20px; padding: 0;
+  border: none; border-radius: 10px; background: var(--xeplr-border-primary); cursor: pointer;
+  transition: background 0.15s ease;
+}
+.xeplr-nav-push-switch:focus-visible { outline: 2px solid var(--xeplr-border-focus); outline-offset: 2px; }
+.xeplr-nav-push-switch:disabled { opacity: 0.6; cursor: wait; }
+.xeplr-nav-push-switch-on { background: var(--xeplr-accent); }
+.xeplr-nav-push-knob {
+  position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; transition: transform 0.15s ease;
+}
+.xeplr-nav-push-switch-on .xeplr-nav-push-knob { transform: translateX(16px); }
+.xeplr-nav-push-hint { margin-top: 6px; font-size: 12px; line-height: 1.4; color: var(--xeplr-text-muted); }
+.xeplr-nav-push-error { color: var(--xeplr-danger); }
+
 /* ─── Drawer rail — pinned to the viewport's top-left corner (0,0), full
    height, `position: fixed` with a high z-index. A pure overlay: it never
    pushes, offsets, or otherwise interacts with the top bar or the app's own

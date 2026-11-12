@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
+import PushToggle from './PushToggle.jsx';
 
 // The settings trigger — a gear icon, parallel to NotificationsBell's bell
 // icon — and its dropdown. Used two places: top-right of the top bar
@@ -13,10 +14,11 @@ import { Link } from 'react-router-dom';
 // this component just renders whatever it's handed. `triggerLabel` is
 // optional text next to the gear icon — the drawer passes "Settings" when
 // expanded (matching how its other items show a label), omits it when
-// collapsed; the top bar never passes it (icon-only, no room).
+// collapsed; the top bar never passes it (icon-only, no room). `push`, when
+// the app passed NavPage one, adds "Notifications on this device" above Logout.
 function AccountMenu({
   user, accountItems, placement, triggerLabel,
-  accountOpen, toggleAccount, closeAccount, accountRef, logout
+  accountOpen, toggleAccount, closeAccount, accountRef, logout, push
 }) {
   var label = (user && (user.name || user.email)) || 'Account';
   var initial = label.charAt(0).toUpperCase();
@@ -57,6 +59,8 @@ function AccountMenu({
               </Link>
             );
           })}
+
+          {push && <PushToggle push={push} />}
 
           <div className="xeplr-nav-account-divider" />
           <button type="button" className="xeplr-nav-account-item xeplr-nav-account-logout" role="menuitem" onClick={logout}>

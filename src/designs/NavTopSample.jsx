@@ -11,7 +11,7 @@ import './nav.css';
 // notifications bell when `notifications` is set.
 function NavTopSample({
   logo, navMiddle,
-  user, accountItems, notifications, accountOpen, toggleAccount, closeAccount, accountRef, logout
+  user, accountItems, notifications, accountOpen, toggleAccount, closeAccount, accountRef, logout, push
 }) {
   return (
     <header className="xeplr-nav xeplr-nav-top">
@@ -24,7 +24,7 @@ function NavTopSample({
         <AccountMenu
           user={user} accountItems={accountItems}
           accountOpen={accountOpen} toggleAccount={toggleAccount} closeAccount={closeAccount}
-          accountRef={accountRef} logout={logout}
+          accountRef={accountRef} logout={logout} push={push}
         />
       </div>
     </header>

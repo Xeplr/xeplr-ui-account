@@ -8,7 +8,7 @@ import './nav.css';
 // `floatingSettings` prop, for layouts (e.g. an icon drawer) that want these
 // two floating over the page instead of pinned to the drawer's own footer.
 function NavFloatingSettings({
-  user, accountItems, notifications, accountOpen, toggleAccount, closeAccount, accountRef, logout
+  user, accountItems, notifications, accountOpen, toggleAccount, closeAccount, accountRef, logout, push
 }) {
   return (
     <div className="xeplr-nav-floating">
@@ -16,7 +16,7 @@ function NavFloatingSettings({
       <AccountMenu
         user={user} accountItems={accountItems}
         accountOpen={accountOpen} toggleAccount={toggleAccount} closeAccount={closeAccount}
-        accountRef={accountRef} logout={logout}
+        accountRef={accountRef} logout={logout} push={push}
       />
     </div>
   );

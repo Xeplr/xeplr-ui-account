@@ -41,7 +41,7 @@ function isPhone() {
 
 function NavDrawer({
   drawerOpen, toggleDrawer, closeDrawer, drawerItems, expandedLogo, logo, drawerPromo,
-  user, accountItems, notifications, accountOpen, toggleAccount, closeAccount, accountRef, logout,
+  user, accountItems, notifications, accountOpen, toggleAccount, closeAccount, accountRef, logout, push,
   hideFooterIcons,
   drawerWidth, drawerResizing, startDrawerResize, resetDrawerWidth, nudgeDrawerWidth, drawerWidthBounds
 }) {
@@ -195,7 +195,7 @@ function NavDrawer({
             placement="top" triggerLabel={drawerOpen ? 'Settings' : undefined}
             user={user} accountItems={accountItems}
             accountOpen={accountOpen} toggleAccount={toggleAccount} closeAccount={closeAccount}
-            accountRef={accountRef} logout={logout}
+            accountRef={accountRef} logout={logout} push={push}
           />
         </div>
       )}

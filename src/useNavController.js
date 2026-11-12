@@ -84,6 +84,9 @@ function readStoredDrawerWidth() {
  *   the settings dropdown — this is where an "Admin" link belongs now. Each
  *   `name` must match a `menus.name` row you've seeded (in YOUR app's
  *   migrations-auth, not auth's own) — role-filtered via access.menus.
+ * @param {{apiBase:string, workerUrl?:string}} [props.push] — "Notifications on
+ *   this device" in the settings menu: where the app mounted @xeplr/push's routes
+ *   (e.g. '/api/push'). Left out: no switch. See push.js and vite.js.
  * @param {{count?:number, onClick?:Function}} [props.notifications] — the app's feed
  *   config. Only takes effect if the user's role grants the "Notifications" menu
  *   (seeded basic-tier, visible to everyone by default) — otherwise the bell is
@@ -203,6 +206,7 @@ export function useNavController(props) {
     accountItems: accountItems,
     notifications: notificationsAllowed ? (props.notifications || null) : null,
     logout: accessCtx.logout,
+    push: props.push && props.push.apiBase ? props.push : null,
 
     accountOpen: accountOpen,
     toggleAccount: toggleAccount,
