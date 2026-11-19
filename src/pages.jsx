@@ -8,12 +8,13 @@ import { useResendActivationController } from './useResendActivationController.j
 import { useAcceptInviteController } from './useAcceptInviteController.js';
 import { useChangePasswordController } from './useChangePasswordController.js';
 import { useProfileController } from './useProfileController.js';
+import { useSignInSecurityController } from './useSignInSecurityController.js';
 import { useUserRolesController } from './useUserRolesController.js';
 import { useAccessMatrixController } from './useAccessMatrixController.js';
 import { useMasterSettingsController } from './useMasterSettingsController.js';
 import { useNavController } from './useNavController.js';
-import { LoginDesign1, LoginDesign2, LoginDesign3, LoginDesign4, LoginDesign5, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ResendActivationSample, AcceptInviteSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, NavDrawer, NavFloatingSettings } from './designs/index.js';
-import { useDesignValidator, LOGIN_RULES, REGISTER_RULES, FORGOT_PASSWORD_RULES, RESET_PASSWORD_RULES, RESEND_ACTIVATION_RULES, ACCEPT_INVITE_RULES, CHANGE_PASSWORD_RULES, PROFILE_RULES, USER_ROLES_MATRIX_RULES, ACCESS_MATRIX_RULES, MASTER_SETTINGS_RULES, NAV_RULES } from './validateDesign.js';
+import { LoginDesign1, LoginDesign2, LoginDesign3, LoginDesign4, LoginDesign5, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ResendActivationSample, AcceptInviteSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, SignInSecuritySample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, NavDrawer, NavFloatingSettings } from './designs/index.js';
+import { useDesignValidator, LOGIN_RULES, REGISTER_RULES, FORGOT_PASSWORD_RULES, RESET_PASSWORD_RULES, RESEND_ACTIVATION_RULES, ACCEPT_INVITE_RULES, CHANGE_PASSWORD_RULES, PROFILE_RULES, SECURITY_RULES, USER_ROLES_MATRIX_RULES, ACCESS_MATRIX_RULES, MASTER_SETTINGS_RULES, NAV_RULES } from './validateDesign.js';
 
 /**
  * Ready-made pages: controller (the logic) + sample design (the look), wired together.
@@ -97,10 +98,27 @@ export function ChangePasswordPage({ design, ...props }) {
   return <div ref={ref}><View {...controller} /></div>;
 }
 
-export function ProfilePage({ design, ...props }) {
+// The profile, and under it the sign-in security section (the second step,
+// the mobile number) — shown only when the server offers any of it.
+// `security={MyDesign}` re-skins that section; `security={false}` leaves it
+// out; `issuer` names the account in the authenticator app (the page title
+// when not given).
+export function ProfilePage({ design, security, issuer, ...props }) {
   var controller = useProfileController(props);
   var ref = useDesignValidator('ProfilePage', PROFILE_RULES);
   var View = design || ProfileSample;
+  return (
+    <div ref={ref}>
+      <View {...controller} />
+      {security !== false && <SignInSecurityPage design={security} issuer={issuer} />}
+    </div>
+  );
+}
+
+export function SignInSecurityPage({ design, ...props }) {
+  var controller = useSignInSecurityController(props);
+  var ref = useDesignValidator('SignInSecurityPage', SECURITY_RULES);
+  var View = design || SignInSecuritySample;
   return <div ref={ref}><View {...controller} /></div>;
 }
 

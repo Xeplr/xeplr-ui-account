@@ -1,6 +1,10 @@
 const TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 const USER_KEY = 'user';
+// "Trust this device" — given by the server after a second step, sent with
+// the next sign-in so this device is not asked again. NOT cleared on sign-out:
+// it belongs to the device, not to the session.
+const TRUST_KEY = 'xeplrTrustToken';
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -35,4 +39,15 @@ export function clearAuth() {
 
 export function isAuthenticated() {
   return !!getToken();
+}
+
+export function getTrustToken() {
+  try { return localStorage.getItem(TRUST_KEY); } catch (e) { return null; }
+}
+
+export function setTrustToken(token) {
+  try {
+    if (token) localStorage.setItem(TRUST_KEY, token);
+    else localStorage.removeItem(TRUST_KEY);
+  } catch (e) {}
 }

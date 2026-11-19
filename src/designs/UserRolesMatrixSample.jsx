@@ -1,8 +1,11 @@
 import './admin.css';
 import AdminTabs from './AdminTabs.jsx';
 
+// What a person's second step uses, as the badge says it.
+var TWO_STEP_LABEL = { authenticator: 'Two-step: app', email: 'Two-step: email', sms: 'Two-step: text' };
+
 export default function UserRolesMatrixSample({
-  users, roles, search, setSearch, loading, error, saving, handleToggle, handleActivate, isAssigned, reload,
+  users, roles, search, setSearch, loading, error, saving, handleToggle, handleActivate, handleResetTwoFactor, isAssigned, reload,
   newRoleName, setNewRoleName, creatingRole, createRole
 }) {
   return (
@@ -76,6 +79,20 @@ export default function UserRolesMatrixSample({
                               onClick={function() { handleActivate(user.id); }}>
                               {saving[user.id + ':activate'] ? 'Activating…' : 'Activate'}
                             </button>
+                          </div>
+                        )}
+                        {(user.twoFactorMethod || user.hasAuthenticator) && (
+                          <div className="xeplr-admin-user-pending">
+                            <span className="xeplr-admin-pending-badge">{TWO_STEP_LABEL[user.twoFactorMethod] || 'Two-step off'}</span>
+                            {handleResetTwoFactor && (
+                              <button type="button" className="xeplr-admin-btn-link"
+                                disabled={!!saving[user.id + ':2fa']}
+                                onClick={function() {
+                                  if (window.confirm('Reset two-step sign-in for ' + (user.name || user.email) + '? Their authenticator app is removed and every device they trusted asks again.')) handleResetTwoFactor(user.id);
+                                }}>
+                                {saving[user.id + ':2fa'] ? 'Resetting…' : 'Reset two-step'}
+                              </button>
+                            )}
                           </div>
                         )}
                       </td>

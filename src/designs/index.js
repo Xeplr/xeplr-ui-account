@@ -1,4 +1,5 @@
 export { default as LoginSample } from './LoginSample.jsx';
+export { default as SignInSecuritySample } from './SignInSecuritySample.jsx';
 export { LoginDesign1, LoginDesign2, LoginDesign3, LoginDesign4, LoginDesign5 } from './LoginDesigns.jsx';
 export { default as RegisterSample } from './RegisterSample.jsx';
 export { default as ForgotPasswordSample } from './ForgotPasswordSample.jsx';

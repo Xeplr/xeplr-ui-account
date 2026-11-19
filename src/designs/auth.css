@@ -111,3 +111,67 @@
   color: var(--xeplr-text-secondary);
   line-height: 1.5;
 }
+
+/* ─── Sign-in security (SignInSecuritySample) ─── */
+.xeplr-security { display: flex; flex-direction: column; gap: 24px; }
+.xeplr-security-block { display: flex; flex-direction: column; gap: 12px; }
+.xeplr-security-block + .xeplr-security-block { padding-top: 20px; border-top: 1px solid var(--xeplr-border-primary); }
+.xeplr-security h2 { margin: 0; font-size: 17px; }
+.xeplr-security-text { margin: 0; font-size: 13px; line-height: 1.5; color: var(--xeplr-text-secondary); }
+.xeplr-security-small { font-size: 12px; }
+.xeplr-security-choices { display: flex; flex-direction: column; gap: 6px; }
+.xeplr-security-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--xeplr-border-primary);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.xeplr-security-choice:has(input:checked) { border-color: var(--xeplr-accent); }
+.xeplr-security-choice input { margin: 3px 0 0; accent-color: var(--xeplr-accent); }
+.xeplr-security-choice span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.xeplr-security-choice strong { font-size: 14px; }
+.xeplr-security-choice small { font-size: 12px; color: var(--xeplr-text-secondary); }
+.xeplr-security-choice-off { opacity: 0.6; cursor: not-allowed; }
+.xeplr-security-setup { display: flex; flex-direction: column; gap: 10px; }
+.xeplr-security-qr { width: 180px; height: 180px; align-self: center; border-radius: 6px; }
+.xeplr-security-secret {
+  align-self: center;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: var(--xeplr-bg-secondary);
+  font-size: 13px;
+  letter-spacing: 1px;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.xeplr-security-row { display: flex; align-items: center; gap: 8px; }
+.xeplr-security-row button[type="submit"] { width: auto; flex: 0 0 auto; padding: 8px 14px; white-space: nowrap; }
+.xeplr-security-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--xeplr-input-border);
+  border-radius: 4px;
+  font-size: 14px;
+  background: var(--xeplr-input-bg);
+  color: var(--xeplr-input-text);
+}
+.xeplr-security-input:focus { outline: none; border-color: var(--xeplr-border-focus); }
+.xeplr-security-plain {
+  align-self: flex-start;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--xeplr-accent);
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.xeplr-security-plain:hover { text-decoration: underline; }
+.xeplr-security .xeplr-auth-form-group { margin-bottom: 0; }
+.xeplr-security .xeplr-auth-form-group label { font-size: 13px; }
+.xeplr-security-row .xeplr-security-plain { align-self: center; }

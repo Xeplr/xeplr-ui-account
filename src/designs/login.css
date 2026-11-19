@@ -130,6 +130,70 @@
 
 .xeplr-login-alt { margin: 4px 0 0; text-align: center; color: var(--xeplr-text-secondary); }
 
+/* ─── Ways in, codes, the second step ─── */
+.xeplr-login-ways {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--xeplr-bg-secondary);
+  border: 1px solid var(--xeplr-border-primary);
+}
+.xeplr-login-way {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--xeplr-text-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.xeplr-login-way:hover { color: var(--xeplr-text-primary); }
+.xeplr-login-way-on {
+  background: var(--xeplr-bg-primary);
+  color: var(--xeplr-text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.xeplr-login-note { margin: 0; font-size: 13px; line-height: 1.5; color: var(--xeplr-text-secondary); }
+.xeplr-login-note strong { color: var(--xeplr-text-primary); font-weight: 600; overflow-wrap: anywhere; }
+
+.xeplr-login-field input.xeplr-login-code { font-size: 20px; letter-spacing: 6px; text-align: center; }
+
+.xeplr-login-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--xeplr-text-secondary);
+  cursor: pointer;
+}
+.xeplr-login-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--xeplr-accent); }
+
+.xeplr-login-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+}
+.xeplr-login-link {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--xeplr-accent);
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.xeplr-login-link:hover { text-decoration: underline; }
+.xeplr-login-link:disabled { opacity: 0.6; cursor: not-allowed; }
+
 /* ─── Shared card ─── */
 .xeplr-login-card {
   width: 100%;

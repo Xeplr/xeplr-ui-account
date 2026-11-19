@@ -1,8 +1,10 @@
 // API client
-export { configure, setSessionExpiredHandler, registerUser, loginUser, activateAccount, resendActivation, previewInvite, acceptInvite, forgotPassword, resetPassword, changePassword, getMe, getProfile, updateProfile, uploadAvatar, logoutUser, authFetch, authFetchFile, authEventStream, parseEventStream } from './api.js';
+export { configure, setSessionExpiredHandler, registerUser, loginUser, activateAccount, resendActivation, previewInvite, acceptInvite, forgotPassword, resetPassword, changePassword, getMe, getProfile, updateProfile, uploadAvatar, logoutUser, authFetch, authFetchFile, authEventStream, parseEventStream,
+  getSignInOptions, requestSignInCode, verifySignInCode, sendSecondStepCode, verifySecondStep,
+  getTwoFactor, startAuthenticator, confirmAuthenticator, chooseTwoFactorMethod, requestPhoneCode, verifyPhoneCode } from './api.js';
 
 // Token helpers
-export { getToken, setToken, getRefreshToken, setRefreshToken, getUser, setUser, clearAuth, isAuthenticated } from './token.js';
+export { getToken, setToken, getRefreshToken, setRefreshToken, getUser, setUser, clearAuth, isAuthenticated, getTrustToken, setTrustToken } from './token.js';
 
 // Multi-tenant levels — call registerMTs() once at app boot with the SAME
 // shape passed to @xeplr/db's registerMTs() on the backend. Teaches authFetch
@@ -19,6 +21,9 @@ export { getActiveScope, setActiveScope, clearActiveScope, getLastScope, setLast
 // rather than always home. See returnTo.js.
 export { saveReturnTo, consumeReturnTo, markDeliberateSignOut } from './returnTo.js';
 
+// The QR code an authenticator app scans, as rows of cells — draw it anywhere.
+export { qrMatrix, groupSecret } from './qrCode.js';
+
 // Controller hooks
 export { useLoginController } from './useLoginController.js';
 export { useRegisterController } from './useRegisterController.js';
@@ -29,6 +34,7 @@ export { useResendActivationController } from './useResendActivationController.j
 export { useAcceptInviteController } from './useAcceptInviteController.js';
 export { useChangePasswordController } from './useChangePasswordController.js';
 export { useProfileController } from './useProfileController.js';
+export { useSignInSecurityController } from './useSignInSecurityController.js';
 export { useUserRolesController } from './useUserRolesController.js';
 export { useAccessMatrixController } from './useAccessMatrixController.js';
 export { useMasterSettingsController } from './useMasterSettingsController.js';
@@ -47,18 +53,18 @@ export { ProtectedRoute } from './ProtectedRoute.jsx';
 export { AccessGuard } from './AccessGuard.jsx';
 
 // Admin API (model layer for RBAC management)
-export { getUsers, activateUser, getRoles, getAccessItems, toggleUserRole, toggleAccessRole, toggleModuleRole, listMenuItems, saveMenuItems, addMenuItem, removeMenuItem } from './adminApi.js';
+export { getUsers, activateUser, resetUserTwoFactor, getRoles, getAccessItems, toggleUserRole, toggleAccessRole, toggleModuleRole, listMenuItems, saveMenuItems, addMenuItem, removeMenuItem } from './adminApi.js';
 export { labelMenuItems } from './menuLabels.js';
 export { getMasterItems, saveMasterItem, deleteMasterItem, MASTER_TYPES } from './masterApi.js';
 
 // Design validation (use when building custom designs)
-export { useDesignValidator, LOGIN_RULES, REGISTER_RULES, FORGOT_PASSWORD_RULES, RESET_PASSWORD_RULES, RESEND_ACTIVATION_RULES, ACCEPT_INVITE_RULES, CHANGE_PASSWORD_RULES, PROFILE_RULES, USER_ROLES_MATRIX_RULES, ACCESS_MATRIX_RULES, MASTER_SETTINGS_RULES, NAV_RULES } from './validateDesign.js';
+export { useDesignValidator, LOGIN_RULES, REGISTER_RULES, FORGOT_PASSWORD_RULES, RESET_PASSWORD_RULES, RESEND_ACTIVATION_RULES, ACCEPT_INVITE_RULES, CHANGE_PASSWORD_RULES, PROFILE_RULES, SECURITY_RULES, USER_ROLES_MATRIX_RULES, ACCESS_MATRIX_RULES, MASTER_SETTINGS_RULES, NAV_RULES } from './validateDesign.js';
 
 // Sample designs (use as reference or starting point)
-export { LoginSample, LoginDesign1, LoginDesign2, LoginDesign3, LoginDesign4, LoginDesign5, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ResendActivationSample, AcceptInviteSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, AccountMenu, NavDrawer, NavFloatingSettings, NotificationsBell, PushToggle } from './designs/index.js';
+export { LoginSample, LoginDesign1, LoginDesign2, LoginDesign3, LoginDesign4, LoginDesign5, RegisterSample, ForgotPasswordSample, ResetPasswordSample, ResendActivationSample, AcceptInviteSample, ActivateSample, NotActivatedSample, ChangePasswordSample, ProfileSample, SignInSecuritySample, UserRolesMatrixSample, AccessMatrixSample, MasterSettingsSample, NavTopSample, AccountMenu, NavDrawer, NavFloatingSettings, NotificationsBell, PushToggle } from './designs/index.js';
 
 // Ready-made pages (controller + sample design wired together; each takes an optional `design` prop)
-export { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ResendActivationPage, AcceptInvitePage, ActivatePage, NotActivatedPage, ChangePasswordPage, ProfilePage, UserRolesPage, AccessMatrixPage, MasterSettingsPage, NavPage } from './pages.jsx';
+export { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ResendActivationPage, AcceptInvitePage, ActivatePage, NotActivatedPage, ChangePasswordPage, ProfilePage, SignInSecurityPage, UserRolesPage, AccessMatrixPage, MasterSettingsPage, NavPage } from './pages.jsx';
 
 // One-call auth routing — mount every auth page with no boilerplate; override just what you want
 export { authRoutes, authPath } from './authRoutes.jsx';
