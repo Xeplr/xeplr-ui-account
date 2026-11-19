@@ -30,7 +30,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@xeplr/ui-utils": "^1.1.2"
+    "@xeplr/ui-utils": "^1.1.2",
+    "qrcode-generator": "^2.0.4"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",

@@ -534,10 +534,98 @@ export function activateAccount(token, workflowKey) {
   return request(url);
 }
 
-export function loginUser({ email, password }) {
+/**
+ * Email and password. Answers tokens — or, when the server asks a second step
+ * (@xeplr/auth AUTH_2FA), `{ secondStep: { ticket, method, methods, sentTo,
+ * trustDays } }` and no tokens. `trustToken` is this device's, when an earlier
+ * second step was told to trust it (see token.js getTrustToken).
+ */
+export function loginUser({ email, password, trustToken }) {
   return request('/auth/api/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, trustToken: trustToken || undefined }),
+  });
+}
+
+// ── Other ways in: a code instead of a password, and the second step ──
+
+/** Which ways in this server offers: { methods, twoFactor, twoFactorMethods, trustDays }. */
+export function getSignInOptions() {
+  return request('/auth/api/sign-in-options');
+}
+
+/** { email } or { phoneNumber } → a code, if an account matches (the answer is the same either way). */
+export function requestSignInCode({ email, phoneNumber }) {
+  return request('/auth/api/login/code', {
+    method: 'POST',
+    body: JSON.stringify({ email: email || undefined, phoneNumber: phoneNumber || undefined }),
+  });
+}
+
+/** → tokens, or { secondStep } like loginUser. */
+export function verifySignInCode({ email, phoneNumber, code, trustToken }) {
+  return request('/auth/api/login/code/verify', {
+    method: 'POST',
+    body: JSON.stringify({ email: email || undefined, phoneNumber: phoneNumber || undefined, code, trustToken: trustToken || undefined }),
+  });
+}
+
+/** Send (again) the second step's code — method 'email' or 'sms'. → { sent, method, sentTo } */
+export function sendSecondStepCode({ ticket, method }) {
+  return request('/auth/api/login/second-step/send', {
+    method: 'POST',
+    body: JSON.stringify({ ticket, method }),
+  });
+}
+
+/** → tokens, plus trustToken when trustDevice was asked for and the server allows it. */
+export function verifySecondStep({ ticket, method, code, trustDevice }) {
+  return request('/auth/api/login/second-step/verify', {
+    method: 'POST',
+    body: JSON.stringify({ ticket, method, code, trustDevice: Boolean(trustDevice) }),
+  });
+}
+
+// ── My own second step (signed in) ──
+
+export function getTwoFactor() {
+  return authFetch('/auth/api/two-factor');
+}
+
+/** → { secret, otpauthUrl } — show it as a QR code; not in use until confirmed. */
+export function startAuthenticator({ issuer } = {}) {
+  return authFetch('/auth/api/two-factor/authenticator', {
+    method: 'POST',
+    body: JSON.stringify({ issuer: issuer || undefined }),
+  });
+}
+
+export function confirmAuthenticator({ code }) {
+  return authFetch('/auth/api/two-factor/authenticator/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
+}
+
+/** method: 'authenticator' | 'email' | 'sms', or null to turn it off. */
+export function chooseTwoFactorMethod({ method }) {
+  return authFetch('/auth/api/two-factor/method', {
+    method: 'POST',
+    body: JSON.stringify({ method: method || null }),
+  });
+}
+
+export function requestPhoneCode({ phoneNumber }) {
+  return authFetch('/auth/api/request-phone-otp', {
+    method: 'POST',
+    body: JSON.stringify({ phoneNumber: phoneNumber || undefined }),
+  });
+}
+
+export function verifyPhoneCode({ code }) {
+  return authFetch('/auth/api/verify-phone-otp', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
   });
 }
 

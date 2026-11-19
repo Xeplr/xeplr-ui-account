@@ -1,27 +1,15 @@
-import { Link } from 'react-router-dom';
+import LoginForm from './LoginForm.jsx';
 import './auth.css';
 
+// The plain sample: a heading and the shared sign-in form, which draws every
+// step (password, a code by email or text, the second step).
 // error/success feedback fires as a snackbar (see useLoginController.js) —
 // this design doesn't render it inline.
-export default function LoginSample({ email, setEmail, password, setPassword, loading, handleSubmit }) {
+export default function LoginSample(props) {
   return (
     <div className="xeplr-auth-container">
       <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <div className="xeplr-auth-form-group">
-          <label htmlFor="xeplr-email">Email</label>
-          <input id="xeplr-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="Enter your email" />
-        </div>
-        <div className="xeplr-auth-form-group">
-          <label htmlFor="xeplr-password">Password</label>
-          <input id="xeplr-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="Enter your password" />
-        </div>
-        <button type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
-      </form>
-      <div className="xeplr-auth-links">
-        <p>Don't have an account? <Link to="/auth/register">Register</Link></p>
-        <p><Link to="/auth/forgot-password">Forgot Password?</Link></p>
-      </div>
+      <LoginForm {...props} />
     </div>
   );
 }

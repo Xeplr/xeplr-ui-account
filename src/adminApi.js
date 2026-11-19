@@ -14,6 +14,12 @@ export function activateUser(userId) {
   return authFetch('/auth/api/admin/users/' + encodeURIComponent(userId) + '/activate', { method: 'POST' });
 }
 
+// Clear someone's second step (they lost their phone): no method, no
+// authenticator app; every device they trusted asks again.
+export function resetUserTwoFactor(userId) {
+  return authFetch('/auth/api/admin/users/' + encodeURIComponent(userId) + '/two-factor/reset', { method: 'POST' });
+}
+
 export function getRoles() {
   return authFetch('/auth/api/admin/roles');
 }

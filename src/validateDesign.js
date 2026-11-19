@@ -61,10 +61,18 @@ export function useDesignValidator(componentName, requiredElements) {
   return containerRef;
 }
 
+// The sign-in page draws one step at a time — email + password, where to send
+// a code, the code itself — so it needs ONE of these inputs, whichever the
+// current step shows (ids: xeplr-email, xeplr-password, xeplr-phone, xeplr-code).
 export var LOGIN_RULES = [
-  { id: 'xeplr-email', label: 'Email input' },
-  { id: 'xeplr-password', label: 'Password input' },
+  { anyOf: ['#xeplr-email', '#xeplr-phone', '#xeplr-code'], label: 'Email, mobile number or code input' },
   { selector: 'button[type="submit"]', label: 'Submit button' }
+];
+
+// The sign-in security section under the profile (SignInSecuritySample). Only
+// the root is required: what it shows depends on what the server offers.
+export var SECURITY_RULES = [
+  { id: 'xeplr-security', label: 'Security section (id="xeplr-security")' }
 ];
 
 export var REGISTER_RULES = [

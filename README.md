@@ -387,7 +387,8 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 
 | hook | options | returns |
 |---|---|---|
-| `useLoginController` | `onSuccess(result)`, `notActivatedPath` | `email, setEmail, password, setPassword, error, loading, handleSubmit` |
+| `useLoginController` | `onSuccess(result)`, `notActivatedPath` | `email, setEmail, password, setPassword, phoneNumber, setPhoneNumber, code, setCode, error, loading, handleSubmit, ways, way, chooseWay, step, resendCode, startOver, secondStep, switchToAuthenticator, trustDevice, setTrustDevice, signInOptions` — see [Other ways in](#other-ways-in-a-code-and-the-second-step) |
+| `useSignInSecurityController` | `issuer` | `available, fetching, status, twoFactorOn, phoneUsed, busy, error, setup, setupCode, setSetupCode, startSetup, confirmSetup, cancelSetup, choose, phone, setPhone, phoneCode, setPhoneCode, phoneSent, sendPhoneCode, verifyPhone` |
 | `useRegisterController` | `onSuccess` | `form, error, success, loading, handleChange, handleSubmit` |
 | `useForgotPasswordController` | — | `email, setEmail, error, success, loading, handleSubmit` |
 | `useResetPasswordController` | — | `token, password, setPassword, error, success, loading, handleSubmit` |
@@ -396,12 +397,13 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 | `useAcceptInviteController` | `onSuccess` | `token, invitee, name, setName, password, setPassword, confirmPassword, setConfirmPassword, error, success, checking, loading, handleSubmit` |
 | `useChangePasswordController` | `onSuccess`, `loginPath` | `currentPassword, setCurrentPassword, newPassword, setNewPassword, confirmPassword, setConfirmPassword, error, success, loading, handleSubmit` |
 | `useProfileController` | `onSuccess` | `form, error, success, loading, fetching, handleChange, handleSubmit` |
-| `useUserRolesController` | — | `users, roles, search, setSearch, loading, error, saving, handleToggle, handleActivate, isAssigned, reload, newRoleName, setNewRoleName, creatingRole, createRole` |
+| `useUserRolesController` | — | `users, roles, search, setSearch, loading, error, saving, handleToggle, handleActivate, handleResetTwoFactor, isAssigned, reload, newRoleName, setNewRoleName, creatingRole, createRole` |
 | `useAccessMatrixController` | `workspaces` or `loadWorkspaces`, `urlKey` | `roles, modules, uncategorized, uncategorizedCount, uncatSubTab, setUncatSubTab, activeView, setActiveView, search, setSearch, loading, error, handleStateChange, handleModuleToggle, handleItemToggle, isItemAssigned, isModuleSaving, isItemSaving, reload, appliesTo, setAppliesTo, scopeId, setScopeId, workspaces, users, statesSupported` |
 | `useMasterSettingsController` | `urlKey` | `tabs, activeTab, setActiveTab, currentTab, items, groupNames, search, setSearch, loading, error, saving, editingItem, editForm, startAdd, startEdit, cancelEdit, updateField, handleSave, handleDelete, reload, isSuperAdmin, handleScopeToggle, isScopeSaving` |
 | `useNavController` | `drawerItems, settingsOverrides, notifications` | `user, accountItems, notifications, logout, accountOpen, toggleAccount, closeAccount, accountRef, drawerOpen, toggleDrawer, closeDrawer, drawerItems, drawerWidth, drawerResizing, startDrawerResize, resetDrawerWidth, nudgeDrawerWidth, drawerWidthBounds` |
 
 - Login stores the tokens and calls `AccessProvider`'s `onLogin` when a provider is present. A login refused as not activated (`403`, `code: 'NOT_ACTIVATED'`; the older server's sentence is still recognised) navigates to `notActivatedPath` (default `/auth/not-activated`). Supplying `onSuccess` replaces the default navigation entirely.
+- User roles shows each person's second step (**Two-step: app / email / text**) with a **Reset two-step** button (`handleResetTwoFactor(userId)`, asks first) — for someone who lost their phone.
 - Register replaces the form with "Check your email" and a link to resend. Not-activated and a failed activation link both offer **Send the link again** (`/auth/resend-activation`).
 - Accept invite reads `?token=`, shows who the invite is for (`invite-preview`), then sets name and password (`invite-accept`), which activates the account.
 - Change password signs the person out afterwards and goes to `loginPath` (default `/auth/login`) — the server ends every session, this one included. With `onSuccess`, navigation is yours.
@@ -416,6 +418,36 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 - **Applies to: Roles, Workspace or User.** Roles are the defaults. A workspace or a user can override them per module and action, and an override may be **Inherit** (no override). Workspaces belong to the host product, not the auth service, so the host passes them: `authRoutes({ accessMatrix: { props: { loadWorkspaces } } })`, or `workspaces` directly.
 - **Server support.** On roles, all three work: Enabled and Hidden are the role mapping (`module-role`), Disabled is the mapping row's state (`module-state`, `@xeplr/auth` 0013). Workspace and user overrides are not stored yet: the server answers `SCOPE_NOT_SUPPORTED`, and the matrix says so and refuses to save them rather than pretending they were saved.
 - `MASTER_TYPES` is `['roles', 'apis', 'pages', 'elements', 'menus']`.
+
+### Other ways in: a code, and the second step
+
+What the sign-in page offers is the server's: it asks `GET /auth/api/sign-in-options` (`@xeplr/auth` 1.6: `AUTH_LOGIN_METHODS`, `AUTH_2FA`, `AUTH_2FA_METHODS`, `AUTH_2FA_TRUST_DAYS`). An older server answers nothing there, and the page is email and password, as before.
+
+**The ways in.** When the server offers more than the password, a switch over the form offers them:
+- **Password** — email and password.
+- **Email code** — `#xeplr-email`, then "Send me a code", then `#xeplr-code`.
+- **Mobile** — `#xeplr-phone`, the number verified on the account, then the code.
+
+The way chosen is in the URL (`?with=email`, `?with=mobile`), so a refresh comes back to it. "Send a new code" and "Change email/number" are under the code.
+
+**The second step.** When the server answers `{ secondStep }` instead of tokens, the same form asks for the code (`step === 'second'`):
+- "Enter the 6-digit code from your authenticator app", or "We emailed / texted a code to a•••@…".
+- **Email me a code instead** is always offered (the server always allows it). **Use my authenticator app** and **Text me a code instead** appear when those are set up.
+- **Don't ask again on this device for N days** appears when the server allows it. The device keeps the server's `trustToken` in `localStorage` (`xeplrTrustToken`), sends it with each sign-in, and keeps it after sign-out, because it belongs to the device, not the session.
+- A half-done second step does **not** survive a refresh: its ticket is a credential and is kept in memory only, so the sign-in starts again.
+
+**Sign-in security on the profile page.** `ProfilePage` shows a second card under the profile (`SignInSecurityPage`, design `SignInSecuritySample`) when the server offers a second step or mobile sign-in:
+- **Two-step sign-in:** choose Off (only when optional), Authenticator app, A code by email, or A code by text message. Methods not ready yet are greyed, with the reason.
+- **Set up an authenticator app:** a QR code, drawn from `qrMatrix(otpauthUrl)` as SVG cells, the key grouped by fours for typing, and the first code to confirm it. "Set up the app again (new phone)" replaces it.
+- **Mobile number:** send a code, then verify. A verified number is the one that signs in, and it belongs to one account only.
+
+Props: `security={MyDesign}` re-skins the card, and `security={false}` leaves it out. `issuer` is the name the authenticator app lists the account under, the page's `<title>` when not given:
+
+```jsx
+authRoutes({ profile: { props: { issuer: 'GharArt CRM' } } })
+```
+
+**Turn `AUTH_2FA` on in `@xeplr/auth` only with this version (1.6) or newer.** An older sign-in page does not understand `{ secondStep }`.
 
 ### Where you are lives in the URL
 
@@ -441,7 +473,7 @@ Each page (except activate and not-activated) checks its rendered design three s
 
 | rules | required |
 |---|---|
-| `LOGIN_RULES` | `#xeplr-email`, `#xeplr-password`, `button[type="submit"]` |
+| `LOGIN_RULES` | one of `#xeplr-email`, `#xeplr-phone`, `#xeplr-code` (whichever the step shows), `button[type="submit"]` |
 | `REGISTER_RULES` | `#xeplr-name`, `#xeplr-email`, `#xeplr-password`, submit |
 | `FORGOT_PASSWORD_RULES` | `#xeplr-email`, submit |
 | `RESET_PASSWORD_RULES` | `#xeplr-password`, submit |
@@ -449,6 +481,7 @@ Each page (except activate and not-activated) checks its rendered design three s
 | `ACCEPT_INVITE_RULES` | `#xeplr-password`, `#xeplr-confirm-password`, submit |
 | `CHANGE_PASSWORD_RULES` | `#xeplr-current-password`, `#xeplr-new-password`, `#xeplr-confirm-password`, submit |
 | `PROFILE_RULES` | `#xeplr-profile-name`, `#xeplr-profile-email`, submit |
+| `SECURITY_RULES` | `#xeplr-security` (the root, present even when the server offers nothing to show) |
 | `USER_ROLES_MATRIX_RULES` | `#xeplr-admin-user-search`, `[role="grid"]`, `#xeplr-admin-new-role` |
 | `ACCESS_MATRIX_RULES` | `#xeplr-admin-access-search`, `[role="tablist"]`, `#xeplr-admin-access-scope` (the Applies-to radiogroup) |
 | `MASTER_SETTINGS_RULES` | `#xeplr-admin-master-search`, `[role="tablist"]` |
@@ -473,11 +506,11 @@ authRoutes({ login: { design: 3, props: { brand: { name: 'Acme', tagline: 'Repor
 <LoginPage design={LoginDesign2} brand={{ name: 'Acme' }} />
 ```
 
-Without a `logo`, the designs show the first letter of `name` as a mark. An unknown number warns and shows design 1. All five share one form (`#xeplr-email`, `#xeplr-password` with a show/hide button, the submit button, forgot-password and register links), so they all pass `LOGIN_RULES`. Styles are namespaced `.xeplr-login-*`.
+Without a `logo`, the designs show the first letter of `name` as a mark. An unknown number warns and shows design 1. All five share one form, `LoginForm`, so they all pass `LOGIN_RULES`. It has `#xeplr-email`, `#xeplr-password` with a show/hide button, the submit button, and the forgot-password and register links. It also draws the [other ways in and the second step](#other-ways-in-a-code-and-the-second-step). Styles are namespaced `.xeplr-login-*`.
 
 ### Designs
 
-`LoginDesign1`–`LoginDesign5` (above), `LoginSample` (the old plain login box, no longer the default), `RegisterSample`, `ForgotPasswordSample`, `ResetPasswordSample`, `ResendActivationSample`, `AcceptInviteSample`, `ActivateSample`, `NotActivatedSample`, `ChangePasswordSample`, `ProfileSample`, `UserRolesMatrixSample`, `AccessMatrixSample`, `MasterSettingsSample`, `NavTopSample`, `NavDrawer`, `NavFloatingSettings`, `AccountMenu`, `NotificationsBell` — the defaults, exported as a reference or starting point. Styles are namespaced `.xeplr-auth-*`, `.xeplr-admin-*` and `.xeplr-nav-*`.
+`LoginDesign1`–`LoginDesign5` (above), `LoginSample` (the old plain login box with the shared form, no longer the default), `SignInSecuritySample`, `RegisterSample`, `ForgotPasswordSample`, `ResetPasswordSample`, `ResendActivationSample`, `AcceptInviteSample`, `ActivateSample`, `NotActivatedSample`, `ChangePasswordSample`, `ProfileSample`, `UserRolesMatrixSample`, `AccessMatrixSample`, `MasterSettingsSample`, `NavTopSample`, `NavDrawer`, `NavFloatingSettings`, `AccountMenu`, `NotificationsBell` — the defaults, exported as a reference or starting point. Styles are namespaced `.xeplr-auth-*`, `.xeplr-admin-*` and `.xeplr-nav-*`.
 
 ## API
 
@@ -486,7 +519,15 @@ Unauthenticated calls go straight to `fetch`; the rest use `authFetch`. All reso
 | function | request |
 |---|---|
 | `registerUser({ email, password, name, phoneNumber })` | `POST /auth/api/register` |
-| `loginUser({ email, password })` | `POST /auth/api/login` → `{ accessToken, refreshToken, user, access }` (does not store them — the login controller does) |
+| `loginUser({ email, password, trustToken? })` | `POST /auth/api/login` → `{ accessToken, refreshToken, user, access }`, or `{ secondStep }` (does not store them — the login controller does) |
+| `getSignInOptions()` | `GET /auth/api/sign-in-options` → `{ methods, twoFactor, twoFactorMethods, trustDays }` |
+| `requestSignInCode({ email \| phoneNumber })` | `POST /auth/api/login/code` — the same answer whether or not an account matched |
+| `verifySignInCode({ email \| phoneNumber, code, trustToken? })` | `POST /auth/api/login/code/verify` → tokens or `{ secondStep }` |
+| `sendSecondStepCode({ ticket, method })` | `POST /auth/api/login/second-step/send` → `{ sent, method, sentTo }` |
+| `verifySecondStep({ ticket, method, code, trustDevice })` | `POST /auth/api/login/second-step/verify` → tokens (+ `trustToken`) |
+| `getTwoFactor()`, `startAuthenticator({ issuer })`, `confirmAuthenticator({ code })`, `chooseTwoFactorMethod({ method })` | `/auth/api/two-factor…` (auth) — my second step |
+| `requestPhoneCode({ phoneNumber })`, `verifyPhoneCode({ code })` | `/auth/api/request-phone-otp`, `/verify-phone-otp` (auth) |
+| `qrMatrix(text)`, `groupSecret(secret)` | a QR code as rows of dark/light cells; a key in fours — pure, no React |
 | `activateAccount(token, workflowKey?)` | `GET /auth/api/activate?token=…` |
 | `resendActivation({ email })` | `POST /auth/api/resend-activation` — the same answer for any address |
 | `previewInvite(token)` | `GET /auth/api/invite-preview?token=…` → `{ email, name }` |
@@ -505,6 +546,7 @@ Admin (auth):
 |---|---|
 | `getUsers()`, `getRoles()`, `getAccessItems()` | `GET /auth/api/admin/users`, `/roles`, `/access-items` |
 | `activateUser(userId)` | `POST /auth/api/admin/users/:id/activate` |
+| `resetUserTwoFactor(userId)` | `POST /auth/api/admin/users/:id/two-factor/reset` — clears their second step; trusted devices ask again |
 | `toggleUserRole({ userId, roleId, assign })` | `POST /auth/api/admin/user-role` |
 | `toggleAccessRole({ type, itemId, roleId, assign })` | `POST /auth/api/admin/access-role` |
 | `toggleModuleRole({ module, action, roleId, assign })` | `POST /auth/api/admin/module-role` |
@@ -514,7 +556,7 @@ Admin (auth):
 | `getMasterItems(type)`, `saveMasterItem(type, data)`, `deleteMasterItem(type, id)` | `GET` / `POST /auth/api/admin/master/<type>`, `POST …/<type>/delete` |
 | `listMenuItems`, `saveMenuItems`, `addMenuItem`, `removeMenuItem` | see [Changing the menu](#changing-the-menu) |
 
-Token storage (`localStorage` keys `accessToken`, `refreshToken`, `user`; `AccessProvider` adds `access`): `getToken`, `setToken`, `getRefreshToken`, `setRefreshToken`, `getUser`, `setUser`, `clearAuth`, `isAuthenticated`.
+Token storage (`localStorage` keys `accessToken`, `refreshToken`, `user`; `AccessProvider` adds `access`): `getToken`, `setToken`, `getRefreshToken`, `setRefreshToken`, `getUser`, `setUser`, `clearAuth`, `isAuthenticated`; `getTrustToken` / `setTrustToken` (`xeplrTrustToken`, "trust this device" — `clearAuth` leaves it).
 
 ## Files
 
@@ -523,7 +565,8 @@ src/
   index.js                 ─ every export
   api.js                   ─ configure, authFetch, the auth calls
   adminApi.js, masterApi.js ─ RBAC and master-data calls, menu items
-  token.js                 ─ token and user storage
+  token.js                 ─ token and user storage, the trusted-device token
+  qrCode.js                ─ qrMatrix (QR code cells, via qrcode-generator), groupSecret
   mt.js, activeScope.js    ─ multi-tenant levels and the scope per level
   returnTo.js              ─ where to go after a gate
   push.js                  ─ push notifications on this device: support, state, on / off, sign-out

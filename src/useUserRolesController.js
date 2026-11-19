@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getUsers, getRoles, toggleUserRole, activateUser } from './adminApi.js';
+import { getUsers, getRoles, toggleUserRole, activateUser, resetUserTwoFactor } from './adminApi.js';
 import { saveMasterItem } from './masterApi.js';
 
 export function useUserRolesController() {
@@ -82,6 +82,23 @@ export function useUserRolesController() {
     }
   }, []);
 
+  // Someone lost the phone with their authenticator app: clear their second
+  // step. They sign in with an emailed code until they set one up again.
+  var handleResetTwoFactor = useCallback(async function(userId) {
+    var key = userId + ':2fa';
+    setSaving(function(prev) { var next = { ...prev }; next[key] = true; return next; });
+    setError('');
+    try {
+      await resetUserTwoFactor(userId);
+      var usersData = await getUsers();
+      setUsers(usersData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(function(prev) { var next = { ...prev }; delete next[key]; return next; });
+    }
+  }, []);
+
   // A new role becomes a column here and in the Access Matrix: both read the
   // role list from the server. Creating one is Super Admin only; anyone else
   // gets the server's refusal as the error.
@@ -115,6 +132,7 @@ export function useUserRolesController() {
     saving,
     handleToggle,
     handleActivate,
+    handleResetTwoFactor,
     isAssigned,
     newRoleName,
     setNewRoleName,
