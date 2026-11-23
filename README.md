@@ -377,6 +377,42 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 
 `saveReturnTo(location)` records `pathname + search`; `consumeReturnTo()` reads and clears it. `ProtectedRoute` saves before redirecting to login, and the login page's default `onSuccess` navigates to `consumeReturnTo() || '/'`. An app's own gate (a company picker, say) does the same: save before redirecting, consume where the person lands. It is kept in `sessionStorage` — per tab — because it is for "send me back to what I was doing", not a link revived days later.
 
+## On a phone — `@xeplr/ui-account/native`
+
+Signing in on a phone app (React Native / Expo), with this package's own calls —
+the same login, ways in (password, a code by email or text), second step,
+tokens and refresh as the website.
+
+```jsx
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { hydrateStorage, startSession, useSession, NativeSignIn, signOut, authFetch } from '@xeplr/ui-account/native'
+
+await hydrateStorage({ AsyncStorage, prefix: 'rental-desk', web: Platform.OS === 'web' })
+startSession({ builtInServer: process.env.EXPO_PUBLIC_SERVER_URL, suggested: 'http://192.168.1.20:19300' })
+
+const { server, signedIn, user, access } = useSession()
+<NativeSignIn title="Rental Desk" tagline="Sign in to carry on." onSignedIn={() => router.replace('/')} />
+```
+
+- **`hydrateStorage`** gives the package a `localStorage` on a phone: kept in
+  memory, written through to AsyncStorage under `<prefix>:`, read back once at
+  start. AsyncStorage is **handed in** — this package imports no React Native
+  module, so a web app installs nothing for it.
+- **`startSession`**: the server is the build's own (`builtInServer`, e.g.
+  `EXPO_PUBLIC_SERVER_URL` — then no address is asked) or the one remembered;
+  `suggested` is offered when there is none (the developer's Mac).
+  `access` (what this person may see — the menu) is read again from
+  `/auth/api/me` when the app opens, so a role taken away is gone on the phone
+  too.
+- **`NativeSignIn`** is drawn with `@xeplr/ui-factory/native`'s parts (an
+  optional peer) so it looks like every other screen of the app; what happens
+  once signed in is the app's (`onSignedIn`).
+- `authFetch` / `authFetchFile` are re-exported for the app's screens
+  (`createFactoryApi({ fetch: authFetch, fetchFile: authFetchFile, base: '/api' })`).
+- Not on a phone yet: picking a company or workspace (multi-tenant apps).
+
+`@xeplr/cli` writes a phone app built on this into every new app (`mobile/`).
+
 ## Three ways to use it
 
 1. **Ready-made** — `authRoutes()`, or the pages directly: `LoginPage`, `RegisterPage`, `ForgotPasswordPage`, `ResetPasswordPage`, `ResendActivationPage`, `AcceptInvitePage`, `ActivatePage`, `NotActivatedPage`, `ChangePasswordPage`, `ProfilePage`, `UserRolesPage`, `AccessMatrixPage`, `MasterSettingsPage`, `NavPage`. Other props (`onSuccess`, …) go to the controller.
