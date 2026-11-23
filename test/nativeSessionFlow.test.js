@@ -12,7 +12,9 @@ globalThis.localStorage = {
   getItem: (k) => (store.has(k) ? store.get(k) : null),
   setItem: (k, v) => store.set(k, String(v)),
   removeItem: (k) => store.delete(k),
-  clear: () => store.clear()
+  clear: () => store.clear(),
+  key: (i) => [...store.keys()][i] ?? null,
+  get length() { return store.size; }
 };
 globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 
@@ -129,4 +131,20 @@ test('signing out forgets who and what they may see', async () => {
   assert.equal(store.get('access'), undefined);
   const tok = await import('../src/token.js');
   assert.equal(tok.getToken(), null);
+});
+
+test('a different person signing in on the phone does not inherit the last person\'s company', async () => {
+  const s = await import('../src/native/session.js');
+  const scope = await import('../src/activeScope.js');
+  const tok = await import('../src/token.js');
+  tok.setUser({ id: 'u1' });
+  scope.setActiveScope('l1', { id: 'c1', name: 'Acme' });
+  assert.equal(scope.activeScopeOwner(), 'u1');
+  answer['/auth/api/login'] = [200, { ...signedIn, user: { id: 'u2', name: 'Arjun' } }];
+  await s.signIn({ server: base, email: 'arjun@example.com', password: 'pw' });
+  assert.equal(scope.getActiveScope('l1'), null, 'the company is chosen again, by this person');
+  scope.setActiveScope('l1', { id: 'c2', name: 'Globex' });
+  answer['/auth/api/login'] = [200, { ...signedIn, user: { id: 'u2', name: 'Arjun' } }];
+  await s.signIn({ server: base, email: 'arjun@example.com', password: 'pw' });
+  assert.equal(scope.getActiveScope('l1').id, 'c2', 'the same person keeps theirs');
 });

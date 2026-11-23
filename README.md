@@ -373,6 +373,28 @@ Call `registerMTs(slots)` once at boot with **the same shape** passed to `@xeplr
 | `SCOPE_CHANGED_EVENT` | the `window` event fired when a level's active id changes, `{ detail: { level } }` |
 | `getMtConfig()` | a copy of the registered slots |
 
+### Choosing where to work — `useScopeChoice`
+
+The company (and workspace, …) picker's logic, once, for every view of it — the
+website's picker page and a phone app's `NativeScopePicker` only draw it:
+
+```jsx
+const choice = useScopeChoice({ levels: tenancy.levels })   // [{ key: 'l1', label: 'Company' }, …]
+choice.levels   // [{ key, label, noun, enabled, items, error, value, adding, busy }]
+choice.choose(i, item)   // active at once; every level under it cleared, and listed again
+choice.setAdding(i, 'Acme'); choice.add(i)   // created, put on the list, chosen
+choice.finish()          // every level chosen → active, and remembered as this person's last choice
+scopeChosen(levels)      // every level has an active choice: the app may show its pages
+```
+
+- Each level is listed only once the levels above it are chosen, and asked
+  **with them as headers**, so the server answers only that company's
+  workspaces. The lists come from the app's `/api/tenants/<level>` (what
+  `@xeplr/cli` writes); `createScopeChoice({ levels, list, add })` takes others.
+- A remembered choice no longer on its list is dropped; a list of one is chosen
+  for the person.
+- `createScopeChoice` is the same without React (`subscribe` / `getState`).
+
 ### Returning after a gate
 
 `saveReturnTo(location)` records `pathname + search`; `consumeReturnTo()` reads and clears it. `ProtectedRoute` saves before redirecting to login, and the login page's default `onSuccess` navigates to `consumeReturnTo() || '/'`. An app's own gate (a company picker, say) does the same: save before redirecting, consume where the person lands. It is kept in `sessionStorage` — per tab — because it is for "send me back to what I was doing", not a link revived days later.
@@ -409,7 +431,10 @@ const { server, signedIn, user, access } = useSession()
   once signed in is the app's (`onSignedIn`).
 - `authFetch` / `authFetchFile` are re-exported for the app's screens
   (`createFactoryApi({ fetch: authFetch, fetchFile: authFetchFile, base: '/api' })`).
-- Not on a phone yet: picking a company or workspace (multi-tenant apps).
+- **`NativeScopePicker`** — where the person is working, for an app whose data
+  is split by company (`registerMTs` first, as on the web): each level's list,
+  the last choice already chosen, a list of one chosen for them, adding a new
+  one. A different person signing in on the same phone chooses again.
 
 `@xeplr/cli` writes a phone app built on this into every new app (`mobile/`).
 

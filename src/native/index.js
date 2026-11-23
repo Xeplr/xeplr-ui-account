@@ -12,6 +12,11 @@ export {
   signInOptions, signIn, sendSignInCode, signInWithCode, sendSecondCode, finishSecondStep, signOut
 } from './session.js'
 export { NativeSignIn } from './NativeSignIn.jsx'
+// Where the app's data belongs — the company (and workspace) picker, for apps whose data is split by company.
+export { NativeScopePicker } from './NativeScopePicker.jsx'
+export { scopeChosen } from '../scopeChoice.js'
+export { registerMTs } from '../mt.js'
+export { clearActiveScope } from '../activeScope.js'
 // What a phone app's own screens call with: the signed fetches (hand them to @xeplr/ui-factory's createFactoryApi).
 export { authFetch, authFetchFile } from '../api.js'
 export { getUser } from '../token.js'
