@@ -18,6 +18,7 @@ import {
 } from '../api.js'
 import { setToken, setRefreshToken, setUser, getToken, getUser, getTrustToken, setTrustToken } from '../token.js'
 import { remember } from './storage.js'
+import { activeScopeOwner, clearActiveScope } from '../activeScope.js'
 
 let state = { server: '', signedIn: false, user: null, access: null, builtIn: '' }
 const listeners = new Set()
@@ -68,6 +69,9 @@ function at(server) {
 function finish(server, result) {
   if (result && result.secondStep) return { secondStep: result.secondStep }
   if (!result || !result.accessToken) throw new Error('The server did not sign you in')
+  // Someone else's company, left chosen on this phone, is not this person's.
+  const owner = activeScopeOwner()
+  if (owner && result.user && owner !== result.user.id) clearActiveScope()
   setToken(result.accessToken)
   setRefreshToken(result.refreshToken)
   if (result.trustToken) setTrustToken(result.trustToken)

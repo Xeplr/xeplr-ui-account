@@ -15,6 +15,9 @@ export { registerMTs, getMtConfig } from './mt.js';
 // bare, app-interpreted value per level, attached to every authFetch call as
 // that level's configured header. See activeScope.js.
 export { getActiveScope, setActiveScope, clearActiveScope, getLastScope, setLastScope, activeTenants, activeScopeOwner, SCOPE_CHANGED_EVENT } from './activeScope.js';
+// Choosing where to work (the company / workspace picker's logic, for any view of it). See scopeChoice.js.
+export { createScopeChoice, scopeChosen } from './scopeChoice.js';
+export { useScopeChoice } from './useScopeChoice.js';
 
 // Where to send the user once a redirect-driven gate (auth, or an app's own
 // gate) resolves — e.g. back to the exact dashboard a deep link pointed at,
