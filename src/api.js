@@ -251,6 +251,16 @@ function httpError(data, res, sent) {
  * Returns true if refresh succeeded, false if session is dead.
  * Deduplicates concurrent refresh calls.
  */
+/**
+ * Renew the sign-in with the refresh token — the same one renewal authFetch
+ * makes on a 401. true when a fresh access token is now stored. For requests
+ * that cannot go through authFetch (an XHR upload with progress): hand it to
+ * @xeplr/ui-utils' configureUpload({ renew: renewSession }).
+ */
+export function renewSession() {
+  return refreshAccessToken();
+}
+
 async function refreshAccessToken() {
   // If a refresh is already in flight, wait for it
   if (_refreshPromise) return _refreshPromise;

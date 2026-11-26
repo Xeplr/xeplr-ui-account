@@ -171,6 +171,10 @@ Nothing to wire in an app that already sets the active scope through `setActiveS
 
 These only shape the UI. The server's own middleware decides what an API returns.
 
+## `renewSession`
+
+`renewSession() → Promise<boolean>` renews the sign-in with the refresh token — the same single renewal `authFetch` makes on a 401 — and stores the fresh tokens. For requests that cannot go through `authFetch`, such as an XHR file upload with progress: hand it to `@xeplr/ui-utils` as `configureUpload({ getHeaders, renew: renewSession })`, so an upload sent with a token that ran out (the person sat on the page) renews and sends again instead of failing with "token expired". `false` when the session is dead (the refresh was refused), which also signs out as `authFetch` does.
+
 ## `authFetch`
 
 ```js
