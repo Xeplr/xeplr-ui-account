@@ -1,5 +1,5 @@
 // API client
-export { configure, setSessionExpiredHandler, registerUser, loginUser, activateAccount, resendActivation, previewInvite, acceptInvite, forgotPassword, resetPassword, changePassword, getMe, getProfile, updateProfile, uploadAvatar, logoutUser, authFetch, authFetchFile, authEventStream, parseEventStream,
+export { configure, setSessionExpiredHandler, registerUser, loginUser, activateAccount, resendActivation, previewInvite, acceptInvite, forgotPassword, resetPassword, changePassword, getMe, getProfile, updateProfile, uploadAvatar, logoutUser, authFetch, authFetchFile, renewSession, authEventStream, parseEventStream,
   getSignInOptions, requestSignInCode, verifySignInCode, sendSecondStepCode, verifySecondStep,
   getTwoFactor, startAuthenticator, confirmAuthenticator, chooseTwoFactorMethod, requestPhoneCode, verifyPhoneCode } from './api.js';
 
